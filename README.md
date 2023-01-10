@@ -21,3 +21,7 @@ Based on the original code from Mike Cotrone https://github.com/mikecotrone/Xojo
 This is a full client written in Xojo for Sentry.io. The Sentry.io platform helps every developer diagnose, fix, and optimize the performance of their code. With Sentry, developers around the world save time, energy, and probably a few therapy sessions.
 
 
+## More information
+https://github.com/getsentry/sentry
+and
+https://sentry.io
