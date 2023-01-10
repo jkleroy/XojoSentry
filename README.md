@@ -1,6 +1,6 @@
 [![XOJO 2022r4](https://img.shields.io/badge/XOJO-2022r4-71AF3A.svg)](https://www.xojo.com/)
-[![Platform Desktop](https://img.shields.io/badge/Platform-Desktop-lightgray.svg?style=flat)]
-[![Platform Web](https://img.shields.io/badge/Platform-Web-lightgray.svg?style=flat)]
+![Platform Desktop](https://img.shields.io/badge/Platform-Desktop-lightgray.svg?style=flat)
+![Platform Web](https://img.shields.io/badge/Platform-Web-lightgray.svg?style=flat)
 [![Platform iOS](https://img.shields.io/badge/Platform-iOS-lightgray.svg?style=flat)](http://www.apple.com/ios/)
 
 # Xojo Sentry Client
