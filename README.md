@@ -21,6 +21,18 @@ Based on the original code from Mike Cotrone https://github.com/mikecotrone/Xojo
 This is a full client written in Xojo for Sentry.io. The Sentry.io platform helps every developer diagnose, fix, and optimize the performance of their code. With Sentry, developers around the world save time, energy, and probably a few therapy sessions.
 
 
+## Usage
+
+Open one of the example projects
+
+1. Copy/paste the Xojo_Sentry module into your project
+2. Copy/paste the code from App.Opening event into your project
+3. Copy/paste the code from App.UnhandledException event into your project
+4. Register for an account at https://sentry.io
+5. You will get a project DSN from Sentry. Copy that value in the App.Opening event
+
+
+
 ## More information
 https://github.com/getsentry/sentry
 and
