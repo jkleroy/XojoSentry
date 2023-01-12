@@ -28,6 +28,10 @@ Protected Class SentryUser
 		subscription As String
 	#tag EndProperty
 
+	#tag Property, Flags = &h0, Description = 5468652075736572277320656D61696C2061646472657373
+		username As String
+	#tag EndProperty
+
 	#tag Property, Flags = &h0, Description = 5468652075736572277320756E697175652049442C20757375616C6C792061205555494420737472696E67
 		user_id As String
 	#tag EndProperty
