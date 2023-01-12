@@ -842,6 +842,10 @@ Class SentryController
 		      jUser.Value("subscription") = self.user.subscription
 		    end if
 		    
+		    If self.user.username.isEmpty = False then
+		      jUser.Value("username") = self.user.username
+		    End If
+		    
 		    j.Value("user") = jUser
 		  end if
 		  '{
