@@ -1694,6 +1694,10 @@ Class SentryController
 		    
 		    //Create the JSONItem that contains all the relevalt data
 		    dim content As Dictionary = self.GenerateJSON(mException, currentFunction, message, level, aWebSession)
+		    
+		    //Allow modification of items before converting it to string
+		    self.BeforeSend(mException, content)
+		    
 		    Dim data As String = xojo.GenerateJSON(content)
 		    
 		    If CancelSend(mException, content) then
@@ -1702,8 +1706,6 @@ Class SentryController
 		      self.mlastUUID = ""
 		      Return
 		    End If
-		    
-		    self.BeforeSend(mException, content)
 		    
 		    self.SendToSentry(lastUUID, data)
 		    
