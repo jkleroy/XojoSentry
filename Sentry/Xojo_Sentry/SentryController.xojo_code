@@ -675,7 +675,7 @@ Class SentryController
 		        jApp.Value("build_type") = "debug"
 		      #endif
 		    #elseif TargetIOS
-		      If ExtensionsXC.IsTestflightXC then
+		      If iOS_isTestflightXC then
 		        jApp.Value("build_type") = "testflight"
 		      End If
 		    #else

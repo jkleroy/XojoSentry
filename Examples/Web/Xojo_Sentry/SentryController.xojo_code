@@ -675,7 +675,7 @@ Class SentryController
 		        jApp.Value("build_type") = "debug"
 		      #endif
 		    #elseif TargetIOS
-		      If ExtensionsXC.IsTestflightXC then
+		      If iOS_isTestflightXC then
 		        jApp.Value("build_type") = "testflight"
 		      End If
 		    #else
@@ -1148,6 +1148,18 @@ Class SentryController
 		Sub RemoveAllTags()
 		  if tempTags <> nil then
 		    tempTags.RemoveAll
+		  end if
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h0
+		Sub RemoveExtraKeyValue(key As String)
+		  if tempExtra is nil then
+		    Return
+		  end if
+		  
+		  if tempExtra.HasKey(key) then
+		    tempExtra.Remove(key)
 		  end if
 		End Sub
 	#tag EndMethod
