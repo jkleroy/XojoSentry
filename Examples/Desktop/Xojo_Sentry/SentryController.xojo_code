@@ -654,7 +654,7 @@ Class SentryController
 		    v.UInt32Value(0)=s
 		    if GetFileVersionInfoA("User32.dll",0,s,v) then
 		      if VerQueryValueA(v,"\",r,o) then
-		        dim res As Xojo.Core.MemoryBlock=r
+		        dim res As MemoryBlock = r
 		        osinfo.Value("version")=str(res.UInt16Value(18))+"."+str(res.UInt16Value(16))+" "+str(res.UInt16Value(22))+"."+str(res.UInt16Value(20))
 		      end if
 		    end if
