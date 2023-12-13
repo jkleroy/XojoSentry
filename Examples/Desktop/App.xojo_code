@@ -33,6 +33,8 @@ Inherits DesktopApplication
 		  
 		  Dim DSN As String = "<<YOUR DSN>>"
 		  
+		  dsn = "https://8d9e34fcea1d487d9521ef2fa21bb038@o477691.ingest.sentry.io/4504345055068161"
+		  
 		  //Initialise Sentry
 		  If DSN.IsEmpty or DSN = "<<YOUR DSN>>" then
 		    Break //Get a DSN string from https://sentry.io
@@ -49,7 +51,12 @@ Inherits DesktopApplication
 		  self.sentry.Options.include_StackFrame_address = False
 		  self.sentry.Options.max_breadcrumbs = 100
 		  self.sentry.Options.sample_rate = 1.0 //Keep this value at 1.0 when debugging, change value for a released app
-		  
+		  self.sentry.Options.save_before_sending = False //Set to True if your app will quit on exceptions
+		  #if DebugBuild
+		    self.sentry.Options.traces_sample_rate = 1.0 //Keep this value at 1.0 when debugging, change value for a released app
+		  #else
+		    self.sentry.Options.traces_sample_rate = 0.1
+		  #endif
 		  
 		  
 		  //If your app handles user authentication add the info to sentry
@@ -59,7 +66,7 @@ Inherits DesktopApplication
 		  user.language = "en" //The language the user is running the app in
 		  user.locale = locale.Current
 		  'user.ip = "1.1.1.1" //Uncomment this if necessary. Default is "{{auto}}"
-		  user.user_id = "1234" //The user's unique ID
+		  user.user_id = "12345" //The user's unique ID
 		  
 		  self.sentry.user = user
 		End Sub
@@ -75,13 +82,21 @@ Inherits DesktopApplication
 		  //Exception
 		  
 		  try
+		    
+		    //Make sure the exception is saved to disk before sending
+		    Dim lastValue As Boolean
+		    lastValue = sentry.Options.save_before_sending
+		    sentry.Options.save_before_sending = True
+		    
+		    //Now send the exception to Sentry
 		    #if DebugBuild
 		      app.Sentry.SubmitException(error, "", "", Xojo_Sentry.errorLevel.debug)
 		    #else
 		      app.Sentry.SubmitException(error, "", "", Xojo_Sentry.errorLevel.error)
 		    #endif
 		    
-		    
+		    //Revert to the previous value
+		    sentry.Options.save_before_sending = lastValue
 		    
 		    //Make sure we do not create another exception by sending it to Sentry
 		  Catch err
