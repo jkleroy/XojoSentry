@@ -33,7 +33,7 @@ Inherits DesktopApplication
 		  
 		  Dim DSN As String = "<<YOUR DSN>>"
 		  
-		  dsn = "https://8d9e34fcea1d487d9521ef2fa21bb038@o477691.ingest.sentry.io/4504345055068161"
+		  
 		  
 		  //Initialise Sentry
 		  If DSN.IsEmpty or DSN = "<<YOUR DSN>>" then

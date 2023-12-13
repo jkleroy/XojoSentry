@@ -44,7 +44,7 @@ Begin DesktopWindow Window1
       Tooltip         =   ""
       Top             =   0
       Transparent     =   False
-      Value           =   2
+      Value           =   0
       Visible         =   True
       Width           =   600
       Begin DesktopButton btAttachment
