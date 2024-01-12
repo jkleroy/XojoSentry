@@ -842,6 +842,10 @@ Class SentryController
 		      jUser.Value("subscription") = self.user.subscription
 		    end if
 		    
+		    If self.user.username.isEmpty = False then
+		      jUser.Value("username") = self.user.username
+		    End If
+		    
 		    j.Value("user") = jUser
 		  end if
 		  '{
@@ -1702,6 +1706,10 @@ Class SentryController
 		    
 		    //Create the JSONItem that contains all the relevalt data
 		    dim content As Dictionary = self.GenerateJSON(mException, currentFunction, message, level, aWebSession)
+		    
+		    //Allow modification of items before converting it to string
+		    self.BeforeSend(mException, content)
+		    
 		    Dim data As String = xojo.GenerateJSON(content)
 		    
 		    If CancelSend(mException, content) then
@@ -1710,8 +1718,6 @@ Class SentryController
 		      self.mlastUUID = ""
 		      Return
 		    End If
-		    
-		    self.BeforeSend(mException, content)
 		    
 		    self.SendToSentry(lastUUID, data)
 		    
