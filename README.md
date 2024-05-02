@@ -1,4 +1,4 @@
-[![XOJO 2022r4](https://img.shields.io/badge/XOJO-2022r4-71AF3A.svg)](https://www.xojo.com/)
+[![XOJO 2023r3](https://img.shields.io/badge/XOJO-2024r1-71AF3A.svg)](https://www.xojo.com/)
 ![Platform Desktop](https://img.shields.io/badge/Platform-Desktop-lightgray.svg?style=flat)
 ![Platform Web](https://img.shields.io/badge/Platform-Web-lightgray.svg?style=flat)
 [![Platform iOS](https://img.shields.io/badge/Platform-iOS-lightgray.svg?style=flat)](http://www.apple.com/ios/)
@@ -7,8 +7,9 @@
  API for using https://sentry.io
 
 Release date: 2023-01-10
+Latest update: 2024-05-01
 
-Language: Xojo 2022r4 Desktop, Web & iOS Project
+Language: Xojo 2023r3 Desktop, Web & iOS Project
 
 Author: Jeremie Leroy
 
