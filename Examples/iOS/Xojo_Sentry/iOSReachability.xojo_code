@@ -1,30 +1,34 @@
 #tag Class
 Private Class iOSReachability
-	#tag CompatibilityFlags = ( TargetConsole and ( Target64Bit ) ) or ( TargetDesktop and ( Target64Bit ) ) or ( TargetIOS and ( Target64Bit ) )
+	#tag CompatibilityFlags = (TargetIOS and (Target64Bit))
 	#tag Method, Flags = &h0
-		Sub Constructor(hostname As Text = "")
-		  
-		  
-		  declare function SCNetworkReachabilityCreateWithName lib "SystemConfiguration" (allocator as ptr, str as CString) as ptr
-		  'dim t as Text = "google.com"
-		  Dim t As Text = "captive.apple.com"
-		  If hostname.Empty = False Then
-		    t = hostname
-		  End If
-		  dim ReachabilityRef as Ptr = SCNetworkReachabilityCreateWithName(Nil, t.ToCString(Xojo.Core.TextEncoding.UTF8))
-		  
-		  dim reachableFlags as UInt32
-		  declare function SCNetworkReachabilityGetFlags lib "SystemConfiguration" (target as ptr, byref flags as UInt32) as Boolean
-		  dim success as Boolean = SCNetworkReachabilityGetFlags(ReachabilityRef, reachableFlags)
-		  if success then
-		    ParseFlags(reachableFlags)
-		  end if
-		  
-		  Declare Sub CFRelease Lib "CoreFoundation" ( CFTypeRef As Ptr )
-		  CFRelease( ReachabilityRef )
-		  
-		  
-		  
+		Sub Constructor(hostname As String = "")
+		  #if TargetIOS
+		    
+		    declare function SCNetworkReachabilityCreateWithName lib "SystemConfiguration" (allocator as ptr, str as CString) as ptr
+		    'dim t as string = "google.com"
+		    Dim t As String = "captive.apple.com"
+		    If hostname.isEmpty = False Then
+		      t = hostname
+		    End If
+		    Dim cs As CString = t
+		    
+		    dim ReachabilityRef as Ptr = SCNetworkReachabilityCreateWithName(Nil, cs) 't.ToCString(Xojo.Core.TextEncoding.UTF8))
+		    
+		    dim reachableFlags as UInt32
+		    declare function SCNetworkReachabilityGetFlags lib "SystemConfiguration" (target as ptr, byref flags as UInt32) as Boolean
+		    dim success as Boolean = SCNetworkReachabilityGetFlags(ReachabilityRef, reachableFlags)
+		    if success then
+		      ParseFlags(reachableFlags)
+		    end if
+		    
+		    Declare Sub CFRelease Lib "CoreFoundation" ( CFTypeRef As Ptr )
+		    CFRelease( ReachabilityRef )
+		    
+		  #else
+		    #Pragma Unused hostname
+		    
+		  #endif
 		End Sub
 	#tag EndMethod
 

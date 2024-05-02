@@ -1,6 +1,6 @@
 #tag Class
 Class SentryController
-	#tag Method, Flags = &h0, CompatibilityFlags = (TargetConsole and (Target32Bit or Target64Bit)) or  (TargetDesktop and (Target32Bit or Target64Bit)) or  (TargetIOS and (Target64Bit))
+	#tag Method, Flags = &h0, CompatibilityFlags = (TargetConsole and (Target32Bit or Target64Bit)) or  (TargetDesktop and (Target32Bit or Target64Bit)) or  (TargetIOS and (Target64Bit)) or  (TargetAndroid and (Target64Bit)), Description = 4164647320612062726561646372756D62207769746820616E206F7074696F6E616C206D6573736167652E
 		Sub AddBreadcrumb(category As String, message As String = "")
 		  #if False
 		    {
@@ -39,7 +39,46 @@ Class SentryController
 		End Sub
 	#tag EndMethod
 
-	#tag Method, Flags = &h0, CompatibilityFlags = (TargetConsole and (Target32Bit or Target64Bit)) or  (TargetDesktop and (Target32Bit or Target64Bit)) or  (TargetIOS and (Target64Bit))
+	#tag Method, Flags = &h0, CompatibilityFlags = (TargetConsole and (Target32Bit or Target64Bit)) or  (TargetDesktop and (Target32Bit or Target64Bit)) or  (TargetIOS and (Target64Bit)) or  (TargetAndroid and (Target64Bit)), Description = 4164647320612062726561646372756D62207769746820747970652C2063617465676F727920616E64206D65737361676520706172616D65746572732E
+		Sub AddBreadcrumb(type As String, category As String, message As String)
+		  #if False
+		    {
+		    "type": "navigation",
+		    "category": "navigation",
+		    "timestamp": "2016-04-20T20:55:53.845Z",
+		    "data": {
+		    "from": "/login",
+		    "to": "/dashboard"
+		    }
+		    }
+		    
+		  #endif
+		  
+		  Dim dic As new Dictionary
+		  
+		  dic.Value("type") = type
+		  dic.Value("category") = category
+		  
+		  //Grab the current time in GMT
+		  Dim GMTZone As New TimeZone("GMT")
+		  now = new DateTime(DateTime.now.SecondsFrom1970, GMTZone)
+		  dic.Value("timestamp") = now.SQLDateTime.Replace(" ", "T") + "Z"
+		  
+		  
+		  
+		  if message.isempty = False then
+		    dic.Value("message") = Message
+		  end if
+		  
+		  breadcrumbs.Add dic
+		  
+		  if self.Options <> nil and breadcrumbs.Count > Options.max_breadcrumbs and breadcrumbs.Count > 2 then
+		    breadcrumbs.RemoveAt(1)
+		  end if
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h0, CompatibilityFlags = (TargetConsole and (Target32Bit or Target64Bit)) or  (TargetDesktop and (Target32Bit or Target64Bit)) or  (TargetIOS and (Target64Bit)) or  (TargetAndroid and (Target64Bit))
 		Sub AddBreadcrumbNavigation(fromScreen As String, toScreen As String, message As String = "")
 		  #if False
 		    {
@@ -103,7 +142,29 @@ Class SentryController
 		    
 		  End if
 		  
-		  
+		  if value.Type = Variant.TypeObject then
+		    dim oTypeInfo as Introspection.TypeInfo = Introspection.GetType(value)
+		    
+		    
+		    #if not TargetAndroid //Comment this line if your Xojo version doesn't support Android
+		      '#if True //UNCOMMENT this line if your Xojo version doesn't support Android
+		      
+		      if oTypeInfo is nil then
+		        //nothing
+		      Elseif oTypeInfo.fullname = "Xojo.Core.dictionary" then
+		        try
+		          Dim str As String = xojo.data.generatejson(value)
+		          value = str
+		          break //Shouldn't be passing a xojo.core.dictionary here
+		        Catch
+		          value = "Couldn't parse Xojo.core.dictionary"
+		        end try
+		      End If
+		    #endif
+		    
+		    
+		    
+		  end if
 		  
 		  tempExtra.Value(key) = value
 		  
@@ -235,6 +296,10 @@ Class SentryController
 		    
 		  #endif
 		  
+		  #if DebugBuild and kVerbose
+		    System.DebugLog "🥖 AddWebBreadcrumb"  + " " + category + ": " + message
+		  #endif
+		  
 		  Dim dic As new Dictionary
 		  
 		  'dic.Value("type") = "default"
@@ -326,6 +391,16 @@ Class SentryController
 		End Sub
 	#tag EndMethod
 
+	#tag Method, Flags = &h0, Description = 4164647320612053656E74727955736572206261736564206F6E207468652053657373696F6E2773204964656E746966696572
+		Sub AddWebUser(user As SentryUser, sessionIdentifier As String)
+		  if webUsers is nil then
+		    webUsers = new Dictionary
+		  end if
+		  
+		  webUsers.Value(sessionIdentifier) = user
+		End Sub
+	#tag EndMethod
+
 	#tag Method, Flags = &h1
 		Protected Sub AfterSend(mException As RuntimeException, content As Dictionary)
 		  
@@ -354,6 +429,7 @@ Class SentryController
 		    
 		    if r > self.Options.sample_rate then Return True
 		    
+		    
 		  end if
 		End Function
 	#tag EndMethod
@@ -367,7 +443,48 @@ Class SentryController
 		  
 		  
 		  
+		  #if TargetWeb
+		    self.webUsers = new Dictionary
+		  #endif
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h0, Description = 446566696E657320746865204854545020726571756573742074686174206C6976657320756E74696C20616E20657863657074696F6E2069732073656E742E
+		Sub DefineRequest(HTTPmethod As String, url As String, data As String = "", requestHeaders As Dictionary = nil)
 		  
+		  
+		  Dim jRequest As new Dictionary
+		  
+		  jRequest.Value("method") = HTTPmethod
+		  
+		  
+		  Dim qIndex As Integer = url.IndexOf("?")
+		  if qIndex = -1 then
+		    jRequest.Value("url") = url
+		  Else
+		    jRequest.Value("url") = url.Left(qIndex)
+		    jRequest.Value("query_string") = url.Middle(qIndex+1)
+		  end if
+		  
+		  if data.IsEmpty = False then
+		    
+		    if data.Bytes > 16 * 1024 then
+		      #if DebugBuild
+		        System.DebugLog CurrentMethodName + " Data is limited to 16kB. " + _
+		        "Sentry might drop the event. See: https://develop.sentry.dev/sdk/data-handling/#variable-size"
+		      #endif
+		    end if
+		    
+		    jRequest.Value("data") = data
+		  end if
+		  
+		  if requestHeaders <> nil and requestHeaders.KeyCount > 0 then
+		    jRequest.Value("headers") = requestHeaders
+		    
+		  end if
+		  
+		  
+		  self.lastRequest = jRequest
 		End Sub
 	#tag EndMethod
 
@@ -421,12 +538,18 @@ Class SentryController
 		    End If
 		  #endif
 		  
+		  Dim sessionIdentifier As String
+		  #if TargetWeb
+		    try
+		      if Session <> nil then
+		        Dim aSession As WebSession = Session
+		        sessionIdentifier = aSession.Identifier
+		      end if
+		    Catch
+		    end try
+		  #endif
 		  
-		  Dim stack() As StackFrame
 		  
-		  stack = mException.StackFrames
-		  
-		  Dim jStack() As Dictionary
 		  
 		  Dim include_address As Boolean = True
 		  if self.Options <> nil then
@@ -434,29 +557,75 @@ Class SentryController
 		  end if
 		  
 		  Dim lastFrame As Dictionary
+		  Dim jStack() As Dictionary
 		  
-		  for i as integer = stack.Ubound downto 0
+		  // If your Xojo version does NOT support Android
+		  // Comment this line of code ⬇️
+		  #if TargetAndroid
 		    
-		    dim frame as StackFrame = stack(i)
+		    // If your Xojo version does NOT support Android
+		    // Uncomment this line of code ⬇️
+		    '#if False
 		    
-		    Dim fname As String = frame.Name
-		    Dim fAddressInt As UInteger = UInteger(frame.Address)
-		    Dim fAddress As String = fAddressInt.toString
+		    Dim stack() as String = mException.Stack
 		    
-		    Dim jframe As New Dictionary
-		    jframe.Value("function") = fname
-		    if include_address then
-		      jframe.Value("filename") = fAddress
-		      jframe.Value("module")="-"
+		    Dim remove_line_numbers As Boolean = True
+		    if options <> nil then
+		      remove_line_numbers = self.Options.android_remove_line_numbers
 		    end if
 		    
+		    For i as Integer = Stack.LastIndex DownTo 0
+		      
+		      Dim fname As String = stack(i)
+		      
+		      if remove_line_numbers and fname.Contains("#") then
+		        fname = fname.Left(fname.IndexOf("#")-1)
+		      end if
+		      
+		      Dim jframe As New Dictionary
+		      jframe.Value("function") = fname
+		      
+		      
+		      if fname.BeginsWith("Raise") = false and fname.BeginsWith("Runtime") = False then
+		        lastFrame = jframe
+		      end if
+		      
+		      jStack.Append jframe
+		      
+		    Next
 		    
-		    if fname.BeginsWith("Raise") = false and fname.BeginsWith("Runtime") = False then
-		      lastFrame = jframe
-		    end if
+		  #else
 		    
-		    jStack.Append jframe
-		  Next
+		    //The following code works on all targets except Android
+		    
+		    Dim stack() As StackFrame
+		    stack = mException.StackFrames
+		    
+		    
+		    for i as integer = stack.Ubound downto 0
+		      
+		      dim frame as StackFrame = stack(i)
+		      
+		      Dim fname As String = frame.Name
+		      Dim fAddressInt As UInteger = UInteger(frame.Address)
+		      Dim fAddress As String = fAddressInt.toString
+		      
+		      Dim jframe As New Dictionary
+		      jframe.Value("function") = fname
+		      if include_address then
+		        jframe.Value("filename") = fAddress
+		        jframe.Value("module")="-"
+		      end if
+		      
+		      
+		      if fname.BeginsWith("Raise") = false and fname.BeginsWith("Runtime") = False then
+		        lastFrame = jframe
+		      end if
+		      
+		      jStack.Add jframe
+		    Next
+		    
+		  #endif
 		  
 		  //Adding current method name at the end
 		  if currentFunction.isEmpty = False then
@@ -468,7 +637,7 @@ Class SentryController
 		    end if
 		    firstFrame.Value("module")="-"
 		    
-		    jStack.Append firstFrame
+		    jStack.Add firstFrame
 		    
 		  Elseif lastFrame <> nil then
 		    Dim fname As String = lastFrame.Value("function")
@@ -481,7 +650,7 @@ Class SentryController
 		    end if
 		    firstFrame.Value("module")="-"
 		    
-		    jStack.Append firstFrame
+		    jStack.Add firstFrame
 		  end if
 		  
 		  
@@ -527,83 +696,87 @@ Class SentryController
 		  
 		  //j.Value("fingerprint") = ["myrpc", "POST", "/foo.bar"]
 		  
-		  Dim type As xojo.Introspection.TypeInfo = xojo.Introspection.GetType(mException)
+		  Dim type As Introspection.TypeInfo = Introspection.GetType(mException)
 		  
-		  j.Value("message") = type.name + &u0A + mException.Message + &u0A + "ErrorNumber: " + mException.ErrorNumber.ToString + &u0A + message
-		  j.Value("stacktrace") = stacktrace
+		  'j.Value("message") = type.name + &u0A + mException.Message + &u0A + "ErrorNumber: " + mException.ErrorNumber.ToString + &u0A + message
+		  if message.IsEmpty = False then
+		    j.Value("message") = message
+		  end if
+		  
+		  'j.Value("stacktrace") = stacktrace
 		  j.Value("release") = getAppVersion
 		  'if currentFunction.isEmpty = False then
 		  'j.Value("culprit") = currentFunction
 		  'end if
 		  
+		  
+		  Dim jvalues() As Dictionary
+		  Dim jException As new Dictionary
+		  jException.Value("type") = type.Name
+		  jException.Value("value") = if(mException.Message.IsEmpty, "", mException.Message + " - ") + "ErrorNumber: " + mException.ErrorNumber.ToString
+		  jException.Value("stacktrace") = stacktrace
+		  
+		  //New v0.6
+		  if currentFunction.IsEmpty or currentFunction = "App.UnhandledException" or currentFunction = "Session.UnhandledException" then
+		    jException.Value("mechanism") = new Dictionary("type":"generic", "handled":false)
+		  end if
+		  
+		  jvalues.Add jException
+		  
+		  j.value("exception") = jvalues
+		  
+		  if lastRequest <> nil then
+		    j.Value("request") = lastRequest
+		  end if
+		  
+		  ////////////////////
+		  // Tags
+		  ////////////////////
+		  
 		  dim tags As New Dictionary
 		  
-		  tags.Value("offline") = False
-		  
-		  if currentFunction.isEmpty = False then
-		    tags.Value("culprit") = currentFunction
-		  end if
-		  
-		  if self.user <> nil and self.user.language.IsEmpty = False then
-		    tags.Value("language") = self.user.language
-		  Else
-		    Dim loc As Locale = locale.Current
-		    if Loc.Identifier.IndexOf("_") > -1 then
-		      tags.Value("language") = loc.Identifier.NthField("_", 1)
-		    Else
-		      tags.Value("language") = loc.Identifier
-		    end if
-		  end if
-		  
-		  
-		  //Global tags
-		  if globalTags <> nil and globalTags.KeyCount > 0 then
-		    try
-		      //Trying to export tags as JSON
-		      Dim tagOutput As String
-		      tagOutput = GenerateJSON(globalTags)
-		      
-		      //JSON Export success, we can add each key to the tags
-		      For each entry as DictionaryEntry in globalTags
-		        tags.Value(entry.key) = entry.Value
-		      Next
-		    Catch
-		      globalTags = nil
-		    end try
-		  end if
-		  
-		  //Additionnal tags
-		  if tempTags <> nil and tempTags.KeyCount > 0 then
-		    try
-		      //Trying to export tags as JSON
-		      Dim tagOutput As String
-		      tagOutput = GenerateJSON(tempTags)
-		      
-		      //JSON Export success, we can add each key to the tags
-		      For each entry as DictionaryEntry in tempTags
-		        tags.Value(entry.key) = entry.Value
-		      Next
-		    Catch
-		      tempTags = nil
-		    end try
-		  end if
-		  
-		  j.Value("tags") = tags
+		  j.Value("tags") = GenerateTags(currentFunction, sessionIdentifier)
 		  
 		  //EXTRA
 		  Dim extraDic As New Dictionary
 		  'if extra.isEmpty = False then
 		  'extraDic.Value("extra") = extra
 		  'end if
+		  
+		  
 		  try
 		    if tempExtra <> nil then
 		      for each entry as DictionaryEntry in tempExtra
-		        extraDic.Value(entry.Key) = entry.Value
+		        
+		        //First add to a temporary dictionary
+		        Dim tempDic As new Dictionary
+		        Dim hasError As Boolean
+		        
+		        try
+		          tempDic.Value(entry.Key) = entry.Value
+		          
+		          //Try generating JSON from that tempDictionary
+		          Dim a as String
+		          a = GenerateJSON(tempDic)
+		        Catch
+		          hasError = True
+		        end try
+		        
+		        if not hasError then
+		          //If no error generating JSON, we can add it to the extraDic
+		          extraDic.Value(entry.Key) = entry.Value
+		        Else
+		          extraDic.Value(entry.Key) = "ERROR PARSING VALUE"
+		        end if
 		      next
 		    end if
+		    
+		    //Try again generating JSON (just in case)
 		    Dim a As String
 		    a = GenerateJSON(extraDic)
+		    
 		  Catch
+		    //Something went wrong, removing all extra key values
 		    extraDic.RemoveAll
 		  end try
 		  
@@ -615,50 +788,7 @@ Class SentryController
 		  dim contexts As New Dictionary
 		  dim osinfo As New Dictionary
 		  
-		  #if TargetIOS
-		    
-		    If true then
-		      osinfo.Value("name") = "iOS"
-		      Declare Function NSClassFromString Lib "Foundation" (name As CFStringRef) As Ptr
-		      declare function currentDevice_ lib "UIKit" selector "currentDevice" (clsRef as ptr) as ptr
-		      declare function systemversion_ lib "UIKit" selector "systemVersion" (obj_id as ptr) as CFStringRef
-		      Dim device as Ptr = currentDevice_(NSClassFromString("UIDevice"))
-		      Dim systemVersion As String = systemversion_(device)
-		      osinfo.Value("version") = systemVersion
-		      osinfo.Value("device") = if(iOS_isIPad, "iPad", "iPhone")
-		    End If
-		    
-		    
-		  #elseif TargetLinux
-		    dim sh as new Shell
-		    sh.Execute("lsb_release", "-is")
-		    osinfo.Value("name")=sh.Result
-		    sh.Execute("lsb_release", "-rs")
-		    osinfo.Value("version")=sh.Result
-		  #elseif TargetMacOS
-		    dim sh as new Shell
-		    osinfo.Value("name")="MacOS"
-		    sh.Execute("sw_vers -productVersion")
-		    osinfo.Value("version")=sh.Result
-		  #Elseif TargetWindows
-		    'dim sh as new Shell
-		    osinfo.Value("name")="Windows"
-		    //hoops to get win os version
-		    declare Function GetFileVersionInfoA lib "Api-ms-win-core-version-l1-1-0.dll" (filename as cstring,handle as uint32,len as uint32,p as ptr) as Boolean
-		    declare Function GetFileVersionInfoSizeA lib "Api-ms-win-core-version-l1-1-0.dll" (filename as cstring,byref o as uint32) as uint32
-		    declare Function VerQueryValueA lib "Api-ms-win-core-version-l1-1-0.dll" (block as ptr,name  as cstring,byref buffer as ptr,byref sze as uint32) as Boolean
-		    dim o as uint32
-		    dim s as uint32=GetFileVersionInfoSizeA("user32.dll",o)
-		    dim v as new MemoryBlock(s)
-		    dim r as ptr
-		    v.UInt32Value(0)=s
-		    if GetFileVersionInfoA("User32.dll",0,s,v) then
-		      if VerQueryValueA(v,"\",r,o) then
-		        dim res As MemoryBlock = r
-		        osinfo.Value("version")=str(res.UInt16Value(18))+"."+str(res.UInt16Value(16))+" "+str(res.UInt16Value(22))+"."+str(res.UInt16Value(20))
-		      end if
-		    end if
-		  #Endif
+		  osinfo = self.GenerateOSInfo()
 		  
 		  contexts.Value("os")=osinfo
 		  
@@ -668,6 +798,7 @@ Class SentryController
 		    Dim GMTZone As New TimeZone("GMT")
 		    Dim d As DateTime = new DateTime(self.startTime.SecondsFrom1970, GMTZone)
 		    jApp.Value("app_start_time") = d.SQLDateTime.Replace(" ", "T") + "Z"
+		    
 		    #if DebugBuild
 		      #if TargetIOS
 		        jApp.Value("build_type") = "simulator"
@@ -693,7 +824,6 @@ Class SentryController
 		      'jApp.Value("app_name") = infoPlist.CFBundleDisplayName
 		      
 		      
-		      
 		    #elseif TargetDesktop or TargetWeb
 		      
 		      jApp.Value("app_name") = app.ExecutableFile.Name
@@ -706,54 +836,7 @@ Class SentryController
 		  End If
 		  
 		  
-		  #if TargetWeb
-		    
-		    if Session <> nil then
-		      Dim aSession As WebSession = Session
-		      
-		      Dim jBrowser As new Dictionary
-		      jBrowser.Value("name") = aSession.Header("User-Agent")
-		      jBrowser.Value("ClientWidth") = aSession.ClientWidth
-		      jBrowser.Value("ClientHeight") = aSession.ClientHeight
-		      jBrowser.Value("platform") = aSession.Platform
-		      jBrowser.Value("IsDarkMode") = aSession.IsDarkMode
-		      jBrowser.Value("ClientTime") = aSession.ClientTime.SQLDateTime
-		      
-		      contexts.Value("browser") = jBrowser
-		    end if
-		  #endif
 		  
-		  
-		  //Culture
-		  If True then
-		    
-		    Dim loc As Locale
-		    
-		    #if TargetWeb
-		      if self.user <> nil and self.user.locale <> nil then
-		        loc = self.user.locale
-		      end if
-		    #else
-		      loc = locale.Current
-		    #endif
-		    
-		    
-		    if loc <> nil then
-		      
-		      Dim jCulture As new Dictionary
-		      'jCulture.Value("calendar") = //No easy way to get this in Xojo
-		      'jCulture.Value("display_name") = //No easy way to get this in Xojo
-		      jCulture.Value("locale") = loc.Identifier.ToText
-		      'jCulture.Value("is_24_hour_format") = //No easy way to get this in Xojo
-		      jCulture.Value("timezone") = TimeZone.Current.Abbreviation
-		      jCulture.Value("locale.CurrencySymbol") = loc.CurrencySymbol
-		      jCulture.Value("locale.DecimalSeparator") = loc.DecimalSeparator
-		      jCulture.Value("locale.GroupingSeparator") = loc.GroupingSeparator
-		      
-		      contexts.Value("culture") = jCulture
-		      
-		    End If
-		  End If
 		  
 		  //Device
 		  #if targetiOS
@@ -762,10 +845,10 @@ Class SentryController
 		    
 		    Dim jDevice As new Dictionary
 		    
-		    jDevice.Value("name") = Device.name.ToText
+		    jDevice.Value("name") = Device.name
 		    jDevice.Value("brand") = "Apple"
-		    jDevice.Value("model") = device.Model.ToText
-		    jDevice.Value("localizedmodel") = device.LocalizedModel.ToText
+		    jDevice.Value("model") = device.Model
+		    jDevice.Value("localizedmodel") = device.LocalizedModel
 		    
 		    
 		    #if DebugBuild
@@ -823,41 +906,109 @@ Class SentryController
 		  j.Value("contexts") = contexts
 		  
 		  
+		  //info about the browser
+		  #if TargetWeb
+		    
+		    try
+		      if Session <> nil then
+		        Dim aSession As WebSession = Session
+		        
+		        
+		        Dim jBrowser As new Dictionary
+		        jBrowser.Value("name") = web_GetBrowserInfo(Session, "Browser")
+		        
+		        Dim browser_version As String = web_GetBrowserInfo(Session, "Version")
+		        if browser_version.IsEmpty = False then
+		          jBrowser.Value("version") = browser_version
+		        end if
+		        
+		        jBrowser.Value("UserAgent") = aSession.Header("User-Agent")
+		        jBrowser.Value("ClientWidth") = aSession.ClientWidth
+		        jBrowser.Value("ClientHeight") = aSession.ClientHeight
+		        jBrowser.Value("platform") = aSession.Platform
+		        jBrowser.Value("IsDarkMode") = aSession.IsDarkMode
+		        jBrowser.Value("ClientTime") = aSession.ClientTime.SQLDateTime
+		        jBrowser.Value("RawHeaders") = aSession.RawHeaders
+		        
+		        contexts.Value("browser") = jBrowser
+		        
+		        
+		        
+		      end if
+		    Catch
+		    end try
+		  #endif
 		  
 		  //info about user
-		  if self.user <> nil then
-		    Dim jUser As New Dictionary
-		    jUser.Value("id") = self.user.user_id
-		    jUser.Value("lang") = self.user.language
-		    if self.user.locale <> nil then
-		      jUser.Value("locale") = self.user.locale.Identifier
+		  Var currentUser As SentryUser
+		  #if TargetWeb
+		    currentUser = self.webUsers.Lookup(sessionIdentifier, nil)
+		  #else
+		    currentUser = self.user
+		  #endif
+		  if currentUser <> nil then
+		    
+		    //Adding a few tags
+		    if currentUser.language.IsEmpty = False then
+		      tags.Value("language") = currentUser.language
+		    Else
+		      Dim loc As Locale = locale.Current
+		      if Loc.Identifier.IndexOf("_") > -1 then
+		        tags.Value("language") = loc.Identifier.NthField("_", 1)
+		      Else
+		        tags.Value("language") = loc.Identifier
+		      end if
 		    end if
-		    jUser.Value("ip_address") = self.user.ip
 		    
-		    If self.user.email.isEmpty = False then
-		      jUser.Value("email") = self.user.email
-		    End If
-		    
-		    if self.user.subscription.isEmpty = False then
-		      jUser.Value("subscription") = self.user.subscription
+		    if currentUser.locale <> nil then
+		      tags.Value("locale") = currentUser.locale.Identifier
 		    end if
 		    
-		    j.Value("user") = jUser
+		    j.Value("user") = GenerateUserData(sessionIdentifier)
+		    
+		    
 		  end if
-		  '{
-		  '"user": {
-		  '"id": "unique_id",
-		  '"username": "my_user",
-		  '"email": "foo@example.com",
-		  '"ip_address": "127.0.0.1",
-		  '"subscription": "basic"
-		  '}
-		  '}
+		  
+		  
+		  
+		  
+		  //Culture
+		  If True then
+		    
+		    Dim loc As Locale
+		    
+		    #if TargetWeb
+		      if currentUser <> nil and currentUser.locale <> nil then
+		        loc = currentUser.locale
+		      end if
+		    #else
+		      loc = locale.Current
+		    #endif
+		    
+		    
+		    if loc <> nil then
+		      
+		      Dim jCulture As new Dictionary
+		      'jCulture.Value("calendar") = //No easy way to get this in Xojo
+		      'jCulture.Value("display_name") = //No easy way to get this in Xojo
+		      jCulture.Value("locale") = loc.Identifier
+		      'jCulture.Value("is_24_hour_format") = //No easy way to get this in Xojo
+		      jCulture.Value("timezone") = TimeZone.Current.Abbreviation
+		      jCulture.Value("locale.CurrencySymbol") = loc.CurrencySymbol
+		      jCulture.Value("locale.DecimalSeparator") = loc.DecimalSeparator
+		      jCulture.Value("locale.GroupingSeparator") = loc.GroupingSeparator
+		      
+		      contexts.Value("culture") = jCulture
+		      
+		    End If
+		  End If
+		  
+		  
 		  
 		  //Breadcrumbs
 		  #if TargetWeb
 		    
-		    if self.breadcrumbsWeb <> nil and Session <> nil then
+		    if self.breadcrumbsWeb <> nil and Session <> nil and Session isa WebSession then
 		      Dim aSession As WebSession = Session
 		      
 		      Dim sessionCrumbs() As Dictionary
@@ -871,6 +1022,8 @@ Class SentryController
 		    end if
 		    
 		  #else
+		    #Pragma Unused Session
+		    
 		    if self.breadcrumbs.Count > 0 then
 		      
 		      j.Value("breadcrumbs") = self.breadcrumbs
@@ -880,6 +1033,206 @@ Class SentryController
 		  
 		  
 		  Return j
+		End Function
+	#tag EndMethod
+
+	#tag Method, Flags = &h1
+		Protected Function GenerateOSInfo() As Dictionary
+		  
+		  //OS Info isn't supposed to change
+		  //So we keep it in cache
+		  
+		  Static osinfo As Dictionary
+		  
+		  if osinfo is nil or osinfo.KeyCount = 0 then
+		    
+		    osinfo = new Dictionary
+		    
+		    #if TargetIOS
+		      
+		      If true then
+		        osinfo.Value("name") = "iOS"
+		        Declare Function NSClassFromString Lib "Foundation" (name As CFStringRef) As Ptr
+		        declare function currentDevice_ lib "UIKit" selector "currentDevice" (clsRef as ptr) as ptr
+		        declare function systemversion_ lib "UIKit" selector "systemVersion" (obj_id as ptr) as CFStringRef
+		        Dim device as Ptr = currentDevice_(NSClassFromString("UIDevice"))
+		        Dim systemVersion As String = systemversion_(device)
+		        osinfo.Value("version") = systemVersion
+		        
+		        
+		        osinfo.Value("device") = if(iOS_isiOSAppOnMac, "iOSAppOnMac", if(iOS_isIPad, "iPad", "iPhone"))
+		        
+		        Declare Function processInfo Lib "Foundation" Selector "processInfo" (ClassName As ptr) As ptr
+		        Declare Function operatingSystemVersionString Lib "Foundation" Selector "operatingSystemVersionString" (prInfo As ptr) As CFStringRef
+		        systemVersion = operatingSystemVersionString( processInfo( NSClassFromString("NSProcessInfo") ))
+		        osinfo.Value("operatingSystemVersion") = systemVersion
+		      End If
+		      
+		    #elseif TargetAndroid
+		      
+		      osinfo.Value("name") = "Android"
+		      Var vData As System.VersionData = System.Version
+		      osinfo.Value("version") = vData.MajorVersion.ToString + "." + vData.MinorVersion.ToString + " (" + vData.BuildVersion + ")"
+		      
+		      osinfo.Value("device") = System.device.model
+		      
+		    #elseif TargetXojoCloud
+		      
+		      Dim vdata As System.VersionData = System.Version
+		      osinfo.Value("version") = vdata.ToString
+		      
+		    #elseif TargetLinux
+		      
+		      dim sh as new Shell
+		      sh.Execute("lsb_release", "-is")
+		      osinfo.Value("name")=sh.Result
+		      sh.Execute("lsb_release", "-rs")
+		      osinfo.Value("version")=sh.Result
+		      
+		      Dim vdata As System.VersionData = System.Version
+		      osinfo.Value("System.Version") = vdata.ToString
+		      
+		      
+		    #elseif TargetMacOS
+		      dim sh as new Shell
+		      osinfo.Value("name")="MacOS"
+		      sh.Execute("sw_vers -productVersion")
+		      osinfo.Value("version")=sh.Result
+		      
+		    #Elseif TargetWindows
+		      'dim sh as new Shell
+		      osinfo.Value("name")="Windows"
+		      //hoops to get win os version
+		      declare Function GetFileVersionInfoA lib "Api-ms-win-core-version-l1-1-0.dll" (filename as cstring,handle as uint32,len as uint32,p as ptr) as Boolean
+		      declare Function GetFileVersionInfoSizeA lib "Api-ms-win-core-version-l1-1-0.dll" (filename as cstring,byref o as uint32) as uint32
+		      declare Function VerQueryValueA lib "Api-ms-win-core-version-l1-1-0.dll" (block as ptr,name  as cstring,byref buffer as ptr,byref sze as uint32) as Boolean
+		      dim o as uint32
+		      dim s as uint32=GetFileVersionInfoSizeA("user32.dll",o)
+		      dim v as new MemoryBlock(s)
+		      dim r as ptr
+		      v.UInt32Value(0)=s
+		      if GetFileVersionInfoA("User32.dll",0,s,v) then
+		        if VerQueryValueA(v,"\",r,o) then
+		          dim res As MemoryBlock = r
+		          osinfo.Value("version")=str(res.UInt16Value(18))+"."+str(res.UInt16Value(16))+" "+str(res.UInt16Value(22))+"."+str(res.UInt16Value(20))
+		        end if
+		      end if
+		      
+		    #Endif
+		    
+		  end if
+		  
+		  Return osinfo
+		End Function
+	#tag EndMethod
+
+	#tag Method, Flags = &h1
+		Protected Function GenerateTags(currentFunction As String, SessionIdentifier As String) As Dictionary
+		  dim tags As New Dictionary
+		  
+		  tags.Value("offline") = False
+		  
+		  if currentFunction.isEmpty = False then
+		    tags.Value("culprit") = currentFunction
+		  end if
+		  
+		  
+		  Var currentUser As SentryUser
+		  #if TargetWeb
+		    if Session <> nil then
+		      Dim aSession As WebSession = Session
+		      currentUser = self.webUsers.Lookup(asession.identifier, nil)
+		      
+		      tags.Value("Session.LanguageCode") = aSession.LanguageCode
+		      tags.Value("Session.LanguageRightToLeft") = aSession.LanguageRightToLeft
+		    end if
+		  #else
+		    currentUser = self.user
+		  #endif
+		  if currentUser <> nil and currentUser.language.IsEmpty = False then
+		    
+		    'if self.user <> nil and self.user.language.IsEmpty = False then
+		    tags.Value("language") = currentUser.language
+		  Else
+		    Dim loc As Locale = locale.Current
+		    if Loc.Identifier.IndexOf("_") > -1 then
+		      tags.Value("language") = loc.Identifier.NthField("_", 1)
+		    Else
+		      tags.Value("language") = loc.Identifier
+		    end if
+		  end if
+		  
+		  
+		  //Global tags
+		  if globalTags <> nil and globalTags.KeyCount > 0 then
+		    try
+		      //Trying to export tags as JSON
+		      Dim tagOutput As String
+		      tagOutput = GenerateJSON(globalTags)
+		      
+		      //JSON Export success, we can add each key to the tags
+		      For each entry as DictionaryEntry in globalTags
+		        tags.Value(entry.key) = entry.Value
+		      Next
+		    Catch
+		      globalTags = nil
+		    end try
+		  end if
+		  
+		  //Additionnal tags
+		  if tempTags <> nil and tempTags.KeyCount > 0 then
+		    try
+		      //Trying to export tags as JSON
+		      Dim tagOutput As String
+		      tagOutput = GenerateJSON(tempTags)
+		      
+		      //JSON Export success, we can add each key to the tags
+		      For each entry as DictionaryEntry in tempTags
+		        tags.Value(entry.key) = entry.Value
+		      Next
+		    Catch
+		      tempTags = nil
+		    end try
+		  end if
+		  
+		  Return tags
+		End Function
+	#tag EndMethod
+
+	#tag Method, Flags = &h1
+		Protected Function GenerateUserData(sessionIdentifier As String = "") As Dictionary
+		  
+		  Var currentUser As SentryUser
+		  #if TargetWeb
+		    currentUser = self.webUsers.Lookup(sessionIdentifier, nil)
+		  #else
+		    currentUser = self.user
+		  #endif
+		  if currentUser <> nil then
+		    
+		    
+		    Dim jUser As New Dictionary
+		    jUser.Value("id") = currentUser.user_id
+		    jUser.Value("lang") = currentUser.language
+		    if currentUser.locale <> nil then
+		      jUser.Value("locale") = currentUser.locale.Identifier
+		    end if
+		    jUser.Value("ip_address") = currentUser.ip
+		    
+		    If currentUser.email.isEmpty = False then
+		      jUser.Value("email") = currentUser.email
+		    End If
+		    
+		    if currentUser.subscription.isEmpty = False then
+		      jUser.Value("subscription") = currentUser.subscription
+		    end if
+		    
+		    Return jUser
+		    
+		  end if
+		  
+		  
+		  
 		End Function
 	#tag EndMethod
 
@@ -905,10 +1258,10 @@ Class SentryController
 		    
 		    release( nsuuidPtr )
 		    
-		    self.mlastUUID = GUID
+		    self.mlastUUID = GUID.ReplaceAll("-", "").Lowercase
 		    Return GUID
 		    
-		  #elseif TargetWeb or TargetDesktop
+		  #else
 		    
 		    // From http://www.cryptosys.net/pki/uuid-rfc4122.html
 		    //
@@ -941,9 +1294,10 @@ Class SentryController
 		    
 		    
 		    dim result as string = EncodeHex(randomBytes)
-		    result = result.LeftB(8) + "-" + result.MidB(9, 4) + "-" + result.MidB(13, 4) + "-" + result.MidB(17, 4) + _
-		    "-" + result.RightB(12)
+		    result = result.LeftBytes(8) + "-" + result.MiddleBytes(8, 4) + "-" + result.MiddleBytes(12, 4) + "-" + result.MiddleBytes(16, 4) + _
+		    "-" + result.RightBytes(12)
 		    
+		    result = result.Lowercase.ReplaceAll("-", "")
 		    
 		    self.mlastUUID = result
 		    return result
@@ -979,9 +1333,20 @@ Class SentryController
 		End Function
 	#tag EndMethod
 
+	#tag Method, Flags = &h1
+		Protected Function GetCurrentTimestamp() As Double
+		  //Grab the current time in GMT
+		  Dim GMTZone As New TimeZone("GMT")
+		  Var now As DateTime
+		  now = new DateTime(DateTime.now.SecondsFrom1970, GMTZone)
+		  
+		  Return now.SecondsFrom1970
+		End Function
+	#tag EndMethod
+
 	#tag Method, Flags = &h0
 		Shared Function GetInstance(DSN As String) As SentryController
-		  https://PROJECT_ID@ID.ingest.sentry.io/NUMBER
+		  // DSN:https://PROJECT_ID@ID.ingest.sentry.io/NUMBER
 		  
 		  Static sharedInstance as SentryController
 		  
@@ -994,13 +1359,28 @@ Class SentryController
 		End Function
 	#tag EndMethod
 
-	#tag Method, Flags = &h21
-		Private Function GetSentryFolder() As FolderItem
+	#tag Method, Flags = &h1
+		Protected Function GetSentryFolder() As FolderItem
 		  Dim folder As FolderItem
 		  
-		  #if TargetIOS
+		  #if TargetIOS or TargetAndroid
+		    
 		    try
 		      folder = SpecialFolder.ApplicationSupport
+		      if not folder.Exists then folder.CreateFolder
+		      
+		      folder = folder.Child("sentry")
+		      if not folder.Exists then folder.CreateFolder
+		      
+		    Catch err as IOException
+		      //Disk is certainly full
+		      Return nil
+		    end try
+		    
+		  #elseif TargetXojoCloud
+		    
+		    try
+		      folder = SpecialFolder.Temporary
 		      if not folder.Exists then folder.CreateFolder
 		      
 		      folder = folder.Child("sentry")
@@ -1014,7 +1394,12 @@ Class SentryController
 		  #else
 		    
 		    try
-		      folder = SpecialFolder.ApplicationData
+		      
+		      folder = SpecialFolder.Caches
+		      if not folder.Exists then folder.CreateFolder
+		      
+		      
+		      folder = folder.Child(app.ExecutableFile.Name)
 		      if not folder.Exists then folder.CreateFolder
 		      
 		      folder = folder.Child("sentry")
@@ -1022,6 +1407,8 @@ Class SentryController
 		      
 		    Catch err as IOException
 		      //Disk is certainly full
+		      
+		      
 		      Return nil
 		    end try
 		    
@@ -1029,6 +1416,26 @@ Class SentryController
 		  
 		  
 		  Return folder
+		End Function
+	#tag EndMethod
+
+	#tag Method, Flags = &h21, CompatibilityFlags = (TargetIOS and (Target64Bit))
+		Private Function iOS_isiOSAppOnMac() As Boolean
+		  
+		  #if TargetIOS
+		    if System.Version.MajorVersion >= 14 then
+		      
+		      //Detecting Apple silicon
+		      Declare Function NSClassFromString Lib "Foundation" (name As CFStringRef) As Ptr
+		      declare function processInfo_ lib "Foundation" selector "processInfo" (clsRef as ptr) as ptr
+		      declare function isiOSAppOnMac_ lib "Foundation" selector "isiOSAppOnMac" (obj_id as ptr) as Boolean
+		      dim AppOnMac as boolean = isiOSAppOnMac_(processInfo_(NSClassFromString("NSProcessInfo")))
+		      
+		      
+		      Return AppOnMac
+		    end if
+		    
+		  #endif
 		End Function
 	#tag EndMethod
 
@@ -1075,28 +1482,46 @@ Class SentryController
 	#tag Method, Flags = &h21
 		Private Sub ParseDSN(dsn As String)
 		  
-		  
-		  // CURRENT DSN FORMAT: {PROTOCOL}://{PUBLIC_KEY}@{HOST}/{PATH}{PROJECT_ID}
-		  Dim myPatternStr as String = "(.*):\/\/(.*)\@(.*)\.(.*)\/(.*)\Z(.*)"
-		  Dim myRegEx as New RegEx
-		  Dim myRegExMatch As RegExMatch
-		  
-		  myRegEx.Options.CaseSensitive = False
-		  myRegEx.Options.Greedy = False
-		  myRegEx.Options.StringBeginIsLineBegin = True
-		  myRegEx.Options.StringEndIsLineEnd = True
-		  myRegEx.Options.MatchEmpty = True
-		  myRegEx.Options.TreatTargetAsOneLine = False
-		  myRegEx.Options.DotMatchAll = false
-		  myRegEx.SearchPattern = myPatternStr
-		  myRegExMatch = myRegEx.Search(dsn)
-		  
-		  Dim path As String
-		  
-		  PublicKey= myRegExMatch.SubExpressionString(2).ToText
-		  Path = myRegExMatch.SubExpressionString(3).ToText + "."
-		  ProjectID= myRegExMatch.SubExpressionString(5).ToText
-		  URI = myRegExMatch.SubExpressionString(1).ToText+"://" + path +myRegExMatch.SubExpressionString(4).ToText
+		  #if TargetAndroid //Comment if your Xojo version doesn't support Android
+		    '#if False //UNCOMMENT if your Xojo version doesn't support Android
+		    
+		    Dim path As String
+		    
+		    PublicKey = dsn.NthField("://", 2).NthField("@", 1)
+		    path = dsn.NthField("@", 2).NthField("/", 1)
+		    
+		    Dim temp() as String = dsn.Split("/")
+		    mProjectID = temp(temp.LastIndex)
+		    
+		    uri = "https://" + path
+		    
+		    
+		  #else
+		    
+		    // CURRENT DSN FORMAT: {PROTOCOL}://{PUBLIC_KEY}@{HOST}/{PATH}{PROJECT_ID}
+		    Dim myPatternStr as String = "(.*):\/\/(.*)\@(.*)\.(.*)\/(.*)\Z(.*)"
+		    Dim myRegEx as New RegEx
+		    Dim myRegExMatch As RegExMatch
+		    
+		    myRegEx.Options.CaseSensitive = False
+		    myRegEx.Options.Greedy = False
+		    myRegEx.Options.StringBeginIsLineBegin = True
+		    myRegEx.Options.StringEndIsLineEnd = True
+		    myRegEx.Options.MatchEmpty = True
+		    myRegEx.Options.TreatTargetAsOneLine = False
+		    myRegEx.Options.DotMatchAll = false
+		    myRegEx.SearchPattern = myPatternStr
+		    myRegExMatch = myRegEx.Search(dsn)
+		    
+		    Dim path As String
+		    
+		    PublicKey= myRegExMatch.SubExpressionString(2)
+		    Path = myRegExMatch.SubExpressionString(3) + "."
+		    mProjectID= myRegExMatch.SubExpressionString(5)
+		    URI = myRegExMatch.SubExpressionString(1) + "://" + path +myRegExMatch.SubExpressionString(4)
+		    
+		    
+		  #endif
 		  
 		End Sub
 	#tag EndMethod
@@ -1105,21 +1530,52 @@ Class SentryController
 		Protected Sub ProcessQueue()
 		  if queue is nil then Return
 		  
-		  if queue.KeyCount = 0 then Return
+		  if queue.KeyCount = 0 then
+		    
+		    #if DebugBuild and kVerbose
+		      System.DebugLog CurrentMethodName + " queue is empty. Return"
+		    #endif
+		    
+		    Return
+		  end if
 		  
 		  
 		  Dim event_id As String
 		  
-		  for each entry as DictionaryEntry in queue
-		    event_id = entry.Key
+		  // If your Xojo version does NOT support Android
+		  // Comment this line of code ⬇️
+		  #if TargetAndroid
 		    
-		    Dim data As String = entry.Value
+		    // If your Xojo version does NOT support Android
+		    // UNCOMMENT this line of code ⬇️
+		    '#if False
 		    
-		    self.SendToSentry(event_id, data)
+		    for each entry as DictionaryEntry in queue
+		      event_id = entry.Key
+		      
+		      Dim data As String = entry.Value
+		      
+		      'System.DebugLog CurrentMethodName + EndOfLine + data
+		      
+		      self.SendToSentry_Android(event_id, data)
+		      
+		      //Send one at a time
+		      exit
+		    next
 		    
-		    //Send one at a time
-		    exit
-		  next
+		  #else
+		    
+		    for each entry as DictionaryEntry in queue
+		      event_id = entry.Key
+		      
+		      Dim data As String = entry.Value
+		      
+		      self.SendToSentry(event_id, data)
+		      
+		      //Send one at a time
+		      exit
+		    next
+		  #endif
 		  
 		  if event_id.isempty = False then
 		    queue.Remove(event_id)
@@ -1164,6 +1620,13 @@ Class SentryController
 		End Sub
 	#tag EndMethod
 
+	#tag Method, Flags = &h0, Description = 52656D6F76657320746865204854545020726571756573742074686174206C6976657320756E74696C20616E20657863657074696F6E2069732073656E742E
+		Sub RemoveLastRequest()
+		  
+		  self.lastRequest = nil
+		End Sub
+	#tag EndMethod
+
 	#tag Method, Flags = &h0, CompatibilityFlags = (TargetWeb and (Target32Bit or Target64Bit)), Description = 52656D6F766573207468652053657373696F6E277320617373696F6369617465642062726561646372756D6273
 		Sub RemoveSessionBreadcrumbs(SessionID As String)
 		  
@@ -1175,19 +1638,55 @@ Class SentryController
 		End Sub
 	#tag EndMethod
 
+	#tag Method, Flags = &h0, CompatibilityFlags = (TargetWeb and (Target32Bit or Target64Bit)), Description = 4E6565647320746F2062652063616C6C65642066726F6D2057656253657373696F6E2E436C6F73696E67206576656E74
+		Sub RemoveWebUser(sessionIdentifier As String)
+		  #if TargetWeb
+		    
+		    //Removing the user as the session terminates
+		    if webUsers <> nil and webUsers.HasKey(sessionIdentifier) then
+		      webUsers.Remove(sessionIdentifier)
+		    end if
+		    
+		    
+		    //Removing the breadcrumbs too
+		    if breadcrumbsWeb <> nil and breadcrumbsWeb.HasKey(sessionIdentifier) then
+		      breadcrumbsWeb.Remove(sessionIdentifier)
+		    end if
+		    
+		    
+		  #endif
+		End Sub
+	#tag EndMethod
+
 	#tag Method, Flags = &h1
-		Protected Sub SaveOfflineException(event_id As String, jsData As String)
+		Protected Sub SaveOfflineException(event_id As String, content As Dictionary)
 		  
-		  Dim js As Dictionary = ParseJSON(jsData)
+		  
+		  Dim jsData As String = xojo.GenerateJSON(content)
 		  
 		  
 		  //Adding the offline tag
-		  if js.HasKey("tags") then
-		    Dim jsTags As Dictionary = js.Value("tags")
-		    jsTags.Value("offline") = true
+		  try
+		    Dim js As Dictionary
+		    #if TargetAndroid
+		      //Because of https://tracker.xojo.com/xojoinc/xojo/-/issues/76200
+		      
+		      js = ParseJSON(jsData)
+		    #else
+		      js = content.Clone
+		    #endif
 		    
-		    jsData = xojo.GenerateJSON(js)
-		  end if
+		    if js.HasKey("tags") then
+		      
+		      Dim jsTags As Dictionary = js.Value("tags")
+		      jsTags.Value("offline") = true
+		      
+		      jsData = xojo.GenerateJSON(js)
+		    end if
+		    
+		  Catch err
+		    System.DebugLog "❌ " + CurrentMethodName + " error1: " + err.Message
+		  end try
 		  
 		  Dim folder As FolderItem = GetSentryFolder
 		  if folder is nil then Return
@@ -1204,8 +1703,19 @@ Class SentryController
 		    
 		    tos.Write(jsData)
 		    tos.Close
-		  Catch
+		    
+		    #if DebugBuild and kVerbose
+		      System.DebugLog CurrentMethodName + " file saved: " + event_id + " encoding: " + jsData.Encoding.InternetName
+		    #endif
+		    
+		  Catch err
+		    
+		    #if DebugBuild
+		      System.DebugLog "❌ " + CurrentMethodName + " error2: " + err.Message
+		    #endif
+		    
 		  end try
+		  
 		End Sub
 	#tag EndMethod
 
@@ -1245,20 +1755,23 @@ Class SentryController
 		    end if
 		  #endif
 		  
-		  //We use  HTTPS
-		  Dim sock As new SentrySocket
-		  
+		  #if TargetAndroid //Comment if your Xojo version doesn't support Android
+		    '#if False //UNCOMMENT if your Xojo version doesn't support Android
+		    Dim sock As new URLConnection
+		  #else
+		    Dim sock As new SentrySocket
+		  #endif
 		  
 		  
 		  //Build the header to submit
 		  dim header as String
-		  header="Sentry sentry_version=7,sentry_client=Xojo-Sentry/"+Version+"," + _
+		  header="Sentry sentry_version=7,sentry_client=Xojo-Sentry/"+kVersion+"," + _
 		  "sentry_timestamp=" + DateTime.now.SecondsFrom1970.ToString(locale.Raw, "######") + "," + _
 		  "sentry_key="+PublicKey '+ '"&" + _
 		  '"sentry_secret="+SecretKey
 		  
 		  
-		  sock.RequestHeader("User-Agent") = "Xojo-Sentry/"+Version
+		  sock.RequestHeader("User-Agent") = "Xojo-Sentry/"+kVersion
 		  sock.RequestHeader("X-Sentry-Auth") = header
 		  sock.RequestHeader("Content-Type") = "application/x-sentry-envelope"
 		  
@@ -1275,10 +1788,14 @@ Class SentryController
 		  
 		  sock.Send("POST", uri + "/api/" + ProjectID + "/envelope/")
 		  
+		  #if DebugBuild and kVerbose
+		    System.DebugLog CurrentMethodName + " Attachment sent"
+		  #endif
+		  
 		End Sub
 	#tag EndMethod
 
-	#tag Method, Flags = &h0
+	#tag Method, Flags = &h0, Description = 53656E647320657863657074696F6E73207468617420776865726520736176656420746F204469736B
 		Sub SendOfflineExceptions()
 		  //Path to sentry offline folder
 		  Dim folder As FolderItem = GetSentryFolder
@@ -1313,9 +1830,9 @@ Class SentryController
 		    
 		    try
 		      
-		      Dim event_id As String = file.Name.ToText
+		      Dim event_id As String = file.Name
 		      
-		      if event_id.Length <> 36 then
+		      if event_id.Length <> 32 and event_id.Length <> 36 then
 		        //Might be a system file
 		        //Ignore it
 		        Continue
@@ -1338,7 +1855,9 @@ Class SentryController
 
 	#tag Method, Flags = &h0, CompatibilityFlags = (TargetConsole and (Target32Bit or Target64Bit)) or  (TargetDesktop and (Target32Bit or Target64Bit)) or  (TargetIOS and (Target64Bit)), Description = 53656E64732073657373696F6E20696E666F726D6174696F6E
 		Sub SendSessionInfo(status As sessionStatus = Sessionstatus.ok, duration As Integer = 0)
-		  //Warning, not available for Web projects at the moment.
+		  // ⚠️ Warning, not available for Web projects at the moment.
+		  
+		  // A Session is not a WebSession. A Session is an opening / closing of an app
 		  
 		  if self.Options.sample_rate < 1.0 then
 		    
@@ -1447,20 +1966,19 @@ Class SentryController
 		  
 		  
 		  //We use  HTTPS
-		  'dim sock as new Xojo.Net.HTTPSocket
 		  Dim sock As new SentrySocket
 		  
 		  
 		  
 		  //Build the header to submit
 		  dim header as String
-		  header="Sentry sentry_version=7,sentry_client=Xojo-Sentry/"+Version+"," + _
+		  header="Sentry sentry_version=7,sentry_client=Xojo-Sentry/"+kVersion+"," + _
 		  "sentry_timestamp=" + DateTime.now.SecondsFrom1970.ToString(locale.Raw, "######") + "," + _
 		  "sentry_key="+PublicKey '+ '"&" + _
 		  '"sentry_secret="+SecretKey
 		  
 		  
-		  sock.RequestHeader("User-Agent") = "Xojo-Sentry/"+Version
+		  sock.RequestHeader("User-Agent") = "Xojo-Sentry/"+kVersion
 		  sock.RequestHeader("X-Sentry-Auth") = header
 		  sock.RequestHeader("Content-Type") = "application/x-sentry-envelope"
 		  
@@ -1477,28 +1995,62 @@ Class SentryController
 		End Sub
 	#tag EndMethod
 
-	#tag Method, Flags = &h21
+	#tag Method, Flags = &h0, Description = 546573747320796F75722053656E74727920696E746567726174696F6E
+		Sub SendTestException()
+		  
+		  Dim err As new RuntimeException
+		  err.Message = "Test exception from XojoSentry"
+		  
+		  self.SubmitException(err, CurrentMethodName, "Only a test", errorLevel.debug)
+		  
+		  
+		  Var url As String = "https://sentry.io/issues/?project=_PID_&statsPeriod=30d&utc=true"
+		  url = url.Replace("_PID_", self.ProjectID)
+		  
+		  Dim openedInBrowser As Boolean
+		  
+		  #if TargetWeb
+		    if Session <> nil then
+		      Session.GoToURL(URL, True)
+		      openedInBrowser = True
+		    end if
+		    
+		  #elseif TargetConsole
+		    
+		  #elseif TargetDesktop
+		    System.GotoURL(url)
+		    openedInBrowser = True
+		    
+		    
+		  #endif
+		  
+		  if openedInBrowser = False then
+		    System.DebugLog CurrentMethodName + " now go to Sentry: " + url
+		  end if
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h21, CompatibilityFlags = (TargetConsole and (Target32Bit or Target64Bit)) or  (TargetWeb and (Target32Bit or Target64Bit)) or  (TargetDesktop and (Target32Bit or Target64Bit)) or  (TargetIOS and (Target64Bit))
 		Private Sub SendToSentry(event_id As String, data As String)
-		  //We use  HTTPS
+		  
 		  
 		  Dim sock As new SentrySocket
 		  
 		  
-		  
 		  //Build the header to submit
 		  dim header As String
-		  header="Sentry sentry_version=7,sentry_client=Xojo-Sentry/"+Version+"," + _
+		  header="Sentry sentry_version=7,sentry_client=Xojo-Sentry/"+kVersion+"," + _
 		  "sentry_timestamp=" + now.SecondsFrom1970.ToString(locale.Raw, "######") + "," + _
 		  "sentry_key="+PublicKey '+ '"&" + _
 		  '"sentry_secret="+SecretKey
 		  
 		  
-		  sock.RequestHeader("User-Agent") = "Xojo-Sentry/"+Version
-		  sock.RequestHeader("X-Sentry-Auth") = header.ToText
+		  sock.RequestHeader("User-Agent") = "Xojo-Sentry/"+kVersion
+		  sock.RequestHeader("X-Sentry-Auth") = header
 		  sock.RequestHeader("Content-Type") = "application/json"
 		  
 		  
-		  sock.SetRequestContent(data.ToText, "application/json")
+		  sock.SetRequestContent(data, "application/json")
 		  
 		  Dim tag As New Dictionary
 		  tag.Value("sentry-event_id") = event_id
@@ -1508,13 +2060,65 @@ Class SentryController
 		  
 		  sock.callBack = WeakAddressOf SendToSentry_Process
 		  sock.Send("POST", uri + "/api/" + ProjectID + "/store/")
+		  
+		  
+		  #if DebugBuild and kVerbose
+		    System.DebugLog CurrentMethodName + " Sent"
+		  #endif
 		End Sub
 	#tag EndMethod
 
-	#tag Method, Flags = &h21
+	#tag Method, Flags = &h21, CompatibilityFlags = (TargetAndroid and (Target64Bit))
+		Private Sub SendToSentry_Android(event_id As String, data As String)
+		  
+		  
+		  //We use  HTTPS
+		  Dim sock As new URLConnection
+		  
+		  AddHandler sock.ContentReceived, AddressOf Socket_ContentReceived
+		  AddHandler sock.Error, AddressOf Socket_Error
+		  
+		  //Build the header to submit
+		  dim header As String
+		  header="Sentry sentry_version=7,sentry_client=Xojo-Sentry/"+kVersion+"," + _
+		  "sentry_timestamp=" + now.SecondsFrom1970.ToString(locale.Raw, "######") + "," + _
+		  "sentry_key="+PublicKey '+ '"&" + _
+		  '"sentry_secret="+SecretKey
+		  
+		  
+		  sock.RequestHeader("User-Agent") = "Xojo-Sentry/"+kVersion
+		  sock.RequestHeader("X-Sentry-Auth") = header
+		  sock.RequestHeader("Content-Type") = "application/json"
+		  
+		  
+		  sock.SetRequestContent(data, "application/json")
+		  
+		  Dim tag As New Dictionary
+		  tag.Value("sentry-event_id") = event_id
+		  tag.Value("sentry-data") = data
+		  
+		  'sock.tag = tag
+		  
+		  'sock.callBack = WeakAddressOf SendToSentry_Process
+		  if Options <> nil and Options.send_sync then
+		    Var result as string = sock.SendSync("POST", uri + "/api/" + ProjectID + "/store/", 60)
+		    #if DebugBuild
+		      System.DebugLog CurrentMethodName + "_result: " + result
+		    #endif
+		  Else
+		    sock.Send("POST", uri + "/api/" + ProjectID + "/store/", 60)
+		  end if
+		  
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h21, CompatibilityFlags = (TargetConsole and (Target32Bit or Target64Bit)) or  (TargetWeb and (Target32Bit or Target64Bit)) or  (TargetDesktop and (Target32Bit or Target64Bit)) or  (TargetIOS and (Target64Bit))
 		Private Sub SendToSentry_Process(content As String, error As RuntimeException, response As SentryResponse)
 		  
 		  if response is nil then Return
+		  
+		  if response.caller is nil then Return
+		  if response.caller.tag is nil then Return
 		  
 		  
 		  Dim tag As Dictionary = response.caller.tag
@@ -1527,14 +2131,23 @@ Class SentryController
 		  
 		  if error <> nil or status > 200 then
 		    
+		    if Options <> nil and Options.save_before_sending then
+		      //Exception should already be saved to disk
+		      Return
+		    end if
+		    
 		    Dim jsData As String = tag.Lookup("sentry-data", "")
 		    
 		    
 		    if jsData.isEmpty = False then
 		      
-		      
-		      SaveOfflineException(event_id, jsData)
-		      
+		      try
+		        Var sentryContent As Dictionary = xojo.ParseJSON(jsData)
+		        SaveOfflineException(event_id, sentryContent)
+		        
+		      Catch err
+		        System.DebugLog "❌ " + CurrentMethodName + " Problem parsing/generating JSON"
+		      end try
 		      
 		      
 		    end if
@@ -1551,6 +2164,7 @@ Class SentryController
 		        Dim file As FolderItem = folder.Child(event_id)
 		        
 		        if file <> nil and file.Exists then
+		          'file.Name = "sent_" + file.Name
 		          file.Remove
 		        end if
 		      Catch
@@ -1637,20 +2251,24 @@ Class SentryController
 		    end if
 		  #endif
 		  
-		  //We use  HTTPS
-		  Dim sock As new SentrySocket
+		  #if TargetAndroid //Comment if your Xojo version doesn't support Android
+		    '#if False //UNCOMMENT if your Xojo version doesn't support Android
+		    Dim sock As new URLConnection
+		  #else
+		    Dim sock As new SentrySocket
+		  #endif
 		  
 		  
 		  
 		  //Build the header to submit
 		  dim header as String
-		  header="Sentry sentry_version=7,sentry_client=Xojo-Sentry/"+Version+"," + _
+		  header="Sentry sentry_version=7,sentry_client=Xojo-Sentry/"+kVersion+"," + _
 		  "sentry_timestamp=" + Datetime.now.SecondsFrom1970.ToString(locale.Raw, "######") + "," + _
 		  "sentry_key="+PublicKey '+ '"&" + _
 		  '"sentry_secret="+SecretKey
 		  
 		  
-		  sock.RequestHeader("User-Agent") = "Xojo-Sentry/"+Version
+		  sock.RequestHeader("User-Agent") = "Xojo-Sentry/"+kVersion
 		  sock.RequestHeader("X-Sentry-Auth") = header
 		  sock.RequestHeader("Content-Type") = "application/x-sentry-envelope"
 		  
@@ -1670,7 +2288,97 @@ Class SentryController
 		End Sub
 	#tag EndMethod
 
+	#tag Method, Flags = &h21, Description = 54686520666F6C6465722077686572652053656E747279207361766573206F66666C696E6520657863657074696F6E73
+		Private Sub Socket_ContentReceived(caller As URLConnection, URL As String, HTTPStatus As Integer, content As String)
+		  
+		  #if DebugBuild and kVerbose
+		    System.DebugLog CurrentMethodName + " Success " + content + " " + HTTPStatus.ToString 
+		    
+		    Var headers() as String
+		    For Each header As Pair In caller.ResponseHeaders
+		      headers.Add(header.Left + ":" + header.Right)
+		    Next
+		    'System.DebugLog "Headers: " + EndOfLine + String.FromArray(headers, EndOfLine)
+		  #endif
+		  
+		  
+		  RemoveHandler caller.ContentReceived, AddressOf Socket_ContentReceived
+		  RemoveHandler caller.Error, AddressOf Socket_Error
+		  
+		  
+		  
+		  if HTTPStatus > 200 then
+		    
+		    #if DebugBuild
+		      System.DebugLog CurrentMethodName + " URLconnection error: " + content
+		    #endif
+		    
+		  Else
+		    
+		    //Event logged OK
+		    Dim event_id As String
+		    
+		    try
+		      
+		      var js As new JSONItem(content)
+		      
+		      event_id = js.Value("id").StringValue
+		      
+		      
+		    Catch
+		    end try
+		    
+		    Var file_removed As Boolean
+		    
+		    if event_id.IsEmpty = False then
+		      //Check to see if there is an associated file to delete
+		      Dim folder As FolderItem = GetSentryFolder
+		      if folder <> nil then
+		        
+		        try
+		          Dim file As FolderItem = folder.Child(event_id)
+		          
+		          if file <> nil and file.Exists then
+		            file.Remove
+		            file_removed = True
+		          end if
+		        Catch
+		        end try
+		        
+		      end if
+		    end if
+		    
+		    #if DebugBuild and kVerbose
+		      System.DebugLog CurrentMethodName + " file_removed: " + file_removed.ToString
+		    #endif
+		    
+		    
+		    timer.CallLater(100, AddressOf ProcessQueue)
+		    
+		  end if
+		  
+		  
+		  
+		End Sub
+	#tag EndMethod
+
 	#tag Method, Flags = &h21
+		Private Sub Socket_Error(caller As URLConnection, e As RuntimeException)
+		  
+		  #if DebugBuild
+		    System.DebugLog CurrentMethodName + " Error " + e.Message
+		  #endif
+		  
+		  
+		  RemoveHandler caller.ContentReceived, AddressOf Socket_ContentReceived
+		  RemoveHandler caller.Error, AddressOf Socket_Error
+		  
+		  
+		  
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h21, CompatibilityFlags = (TargetConsole and (Target32Bit or Target64Bit)) or  (TargetWeb and (Target32Bit or Target64Bit)) or  (TargetDesktop and (Target32Bit or Target64Bit)) or  (TargetIOS and (Target64Bit))
 		Private Sub StartSession_Process(data As String, error As RuntimeException, response As SentryResponse)
 		  #Pragma Unused data
 		  #Pragma Unused Error
@@ -1690,11 +2398,339 @@ Class SentryController
 		End Sub
 	#tag EndMethod
 
+	#tag Method, Flags = &h0, Description = 41207370616E20697320612074696D6564206170706C69636174696F6E206576656E74207468617420686173206120737461727420616E6420656E642074696D65
+		Function StartSpan(transaction As SentryTrace = nil, operation As String, description As String, Optional parent_span_id As String) As SentrySpan
+		  #if not TargetWeb
+		    if transaction is nil then
+		      transaction = currentTrace
+		    end if
+		  #endif
+		  
+		  if transaction is nil then
+		    System.DebugLog CurrentMethodName + " " + "A call to StartTracing is required before starting a span"
+		    Return nil
+		  end if
+		  
+		  
+		  
+		  Dim sp As new SentrySpan
+		  sp.start_timestamp = GetCurrentTimestamp()
+		  sp.parentTrace = transaction
+		  
+		  sp.span_id = GenerateUUID.ReplaceAll("-", "").Left(16)
+		  
+		  sp.op = operation
+		  
+		  if description.IsEmpty = False then
+		    sp.description = description
+		  end if
+		  
+		  if parent_span_id.IsEmpty then
+		    //Try finding the current span_id
+		    if currentSpansIDs.Count > 0 then
+		      sp.parent_span_id = currentSpansIDs(currentSpansIDs.LastIndex)
+		    Else
+		      sp.parent_span_id = transaction.span_id
+		    end if
+		  else
+		    sp.parent_span_id = parent_span_id
+		  end if
+		  
+		  sp.trace_id = transaction.trace_id
+		  
+		  
+		  currentSpansIDs.Add sp.span_id
+		  
+		  
+		  Return sp
+		End Function
+	#tag EndMethod
+
+	#tag Method, Flags = &h0
+		Function StartTracing(operation As String, description As String, level As Xojo_Sentry.errorLevel = Xojo_Sentry.errorLevel.info) As SentryTrace
+		  Dim transaction As new SentryTrace
+		  transaction.start_timestamp = GetCurrentTimestamp()
+		  transaction.event_id = GenerateUUID
+		  transaction.op = operation
+		  transaction.description = description
+		  transaction.trace_id = GenerateUUID
+		  transaction.span_id = GenerateUUID.ReplaceAll("-", "").Left(16)
+		  transaction.level = level
+		  
+		  
+		  
+		  
+		  #if not TargetWeb
+		    self.currentTrace = transaction
+		  #endif
+		  
+		  Return transaction
+		End Function
+	#tag EndMethod
+
+	#tag Method, Flags = &h0
+		Sub StopSpan(span As SentrySpan)
+		  //Just in case
+		  if span.stopped = False then
+		    span.stopped = true
+		    span.timestamp = GetCurrentTimestamp
+		  end if
+		  
+		  Var span_id as String = span.span_id
+		  Var trace_id as String = span.trace_id
+		  
+		  Var idx As Integer = currentSpansIDs.IndexOf(span_id)
+		  
+		  if idx > -1 then
+		    currentSpansIDs.RemoveAt(idx)
+		  end if
+		  
+		  Dim trace As SentryTrace = span.parentTrace
+		  
+		  'if currentTrace <> nil and trace_id = currentTrace.trace_id then
+		  
+		  if trace <> nil then
+		    
+		    Var sp As SentrySpan = span.clone
+		    
+		    trace.spans.add sp
+		    
+		  end if
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h0, Description = 46696E69736865732074686520706173736564207472616E73616374696F6E2E2050617373206E696C20746F2066696E697368207468652053656E74727927732063757272656E74207472616E73616374696F6E
+		Sub StopTracing(transaction As SentryTrace = nil, message As String = "", Session As Variant = nil, level As Xojo_Sentry.errorLevel = Xojo_Sentry.errorLevel.info)
+		  
+		  #if TargetWeb
+		    if transaction is nil then Return
+		  #else
+		    if transaction is nil and currentTrace is nil then Return
+		    
+		    
+		    if transaction is nil then
+		      transaction = currentTrace
+		      self.currentTrace = nil
+		    elseif transaction = self.currentTrace then
+		      self.currentTrace = nil
+		    end if
+		    
+		  #endif
+		  
+		  if transaction.timestamp = 0.0 then
+		    transaction.timestamp = GetCurrentTimestamp()
+		  end if
+		  
+		  
+		  
+		  ////////////////////
+		  // Sample rate
+		  ////////////////////
+		  if self.Options <> nil and self.Options.traces_sample_rate < 1.0 then
+		    
+		    Dim r As Double = System.Random.InRange(0, 100) / 100.0
+		    
+		    if r > self.Options.traces_sample_rate then
+		      #if DebugBuild
+		        System.DebugLog(CurrentMethodName + " SentryOptions.traces_sample_rate is smaller than 1.0. This trace was randomly dropped.")
+		      #endif
+		      Return
+		      
+		    end if
+		  end if
+		  
+		  
+		  Dim sessionIdentifier As String
+		  #if TargetWeb
+		    if Session <> nil then
+		      Dim aSession As WebSession = Session
+		      sessionIdentifier = aSession.Identifier
+		    end if
+		  #endif
+		  
+		  
+		  ////////////////////
+		  // Tags
+		  ////////////////////
+		  transaction.tags = GenerateTags("", sessionIdentifier)
+		  
+		  
+		  transaction.level = level
+		  
+		  
+		  
+		  //Need to test with contexts.trace
+		  '#if not DebugBuild 
+		  '#Pragma Error "TODO"
+		  '#endif
+		  '
+		  '//Need to test with measurements
+		  '#if not DebugBuild
+		  '#Pragma Error "TODO"
+		  '#endif
+		  
+		  
+		  
+		  
+		  Dim envelope As String
+		  
+		  Dim jsHeader As new Dictionary
+		  jsHeader.Value("event_id") = transaction.event_id
+		  
+		  Dim jsType As new Dictionary
+		  jsType.Value("type") = "transaction"
+		  
+		  //Now concat all items into the envelope
+		  envelope = xojo.GenerateJSON(jsHeader, False) + &u0A +_
+		  xojo.GenerateJSON(jsType, False) + &u0A
+		  
+		  Dim js As new Dictionary
+		  
+		  js.Value("type") = "transaction"
+		  
+		  js.Value("event_id") = transaction.event_id
+		  js.Value("project") = self.ProjectID
+		  js.Value("transaction") = transaction.description
+		  'if transaction.description.IsEmpty = False then
+		  'js.Value("title") = transaction.description
+		  'end if
+		  
+		  if message.IsEmpty = False then
+		    js.Value("message") = message
+		  end if
+		  
+		  js.Value("start_timestamp") = transaction.start_timestamp
+		  js.Value("timestamp") = transaction.timestamp
+		  
+		  ////////////////////
+		  // Contexts
+		  ////////////////////
+		  dim contexts As New Dictionary
+		  
+		  //add os version info
+		  contexts.Value("os") = GenerateOSInfo()
+		  
+		  contexts.Value("trace") = transaction.GenerateJS
+		  
+		  js.Value("contexts") = contexts
+		  
+		  ////////////////////
+		  // Breadcrumbs
+		  ////////////////////
+		  #if TargetWeb
+		    
+		    if self.breadcrumbsWeb <> nil and Session <> nil then
+		      
+		      
+		      Dim sessionCrumbs() As Dictionary
+		      if breadcrumbsWeb.HasKey(sessionIdentifier) then
+		        sessionCrumbs = breadcrumbsWeb.Value(sessionIdentifier)
+		      end if
+		      
+		      if sessionCrumbs.Count > 0 then
+		        js.Value("breadcrumbs") = sessionCrumbs
+		      end if
+		    end if
+		    
+		  #else
+		    if self.breadcrumbs.Count > 0 then
+		      
+		      js.Value("breadcrumbs") = self.breadcrumbs
+		      
+		    end if
+		  #endif
+		  
+		  ////////////////////
+		  // ErrorLevel
+		  ////////////////////
+		  Select case level
+		  Case errorLevel.fatal
+		    js.Value("level") = "fatal"
+		  Case errorLevel.error
+		    js.Value("level") = "error"
+		  case errorLevel.warning
+		    js.Value("level") = "warning"
+		  case errorLevel.info
+		    js.Value("level") = "info"
+		  case errorLevel.debug
+		    js.Value("level") = "debug"
+		  End Select
+		  
+		  ////////////////////
+		  // Spans
+		  ////////////////////
+		  Var jsSpans() as Dictionary
+		  For each sp as SentrySpan in transaction.spans
+		    jsSpans.Add sp.GenerateJS
+		  Next
+		  js.Value("spans") = jsSpans
+		  
+		  
+		  
+		  ////////////////////
+		  // User
+		  ////////////////////
+		  #if TargetWeb
+		    if Session <> nil then
+		      js.Value("user") = GenerateUserData(sessionIdentifier)
+		    end if
+		  #else
+		    if self.user <> nil then
+		      js.Value("user") = GenerateUserData
+		    end if
+		  #endif
+		  
+		  
+		  
+		  // GENERATING ENVELOPE
+		  envelope = envelope + xojo.GenerateJSON(js, False) + &u0A
+		  
+		  
+		  
+		  
+		  //We use  HTTPS
+		  Dim sock As new URLConnection
+		  
+		  AddHandler sock.ContentReceived, AddressOf Socket_ContentReceived
+		  AddHandler sock.Error, AddressOf Socket_Error
+		  
+		  
+		  //Build the header to submit
+		  dim header as String
+		  header="Sentry sentry_version=7,sentry_client=Xojo-Sentry/"+kVersion+"," + _
+		  "sentry_timestamp=" + GetCurrentTimestamp.ToString("0.00") + "," + _
+		  "sentry_key="+PublicKey '+ '"&" + _
+		  '"sentry_secret="+SecretKey
+		  
+		  
+		  sock.RequestHeader("User-Agent") = "Xojo-Sentry/"+kVersion
+		  sock.RequestHeader("X-Sentry-Auth") = header
+		  sock.RequestHeader("Content-Type") = "application/x-sentry-envelope"
+		  
+		  sock.SetRequestContent(envelope, "text/plain")
+		  
+		  
+		  
+		  'Dim tag As new Dictionary
+		  'tag.Value("sentry-event_id") = event_id
+		  'tag.Value("sentry-envelope") = envelope
+		  
+		  'sock.callBack = WeakAddressOf StartSession_Process
+		  'sock.tag = tag
+		  
+		  sock.Send("POST", uri + "/api/" + ProjectID + "/envelope/")
+		End Sub
+	#tag EndMethod
+
 	#tag Method, Flags = &h0, Description = 53656E647320616E20657863657074696F6E20746F2053656E747279
 		Sub SubmitException(mException As RuntimeException, currentFunction As String, message As String = "", level As errorLevel = ErrorLevel.error, aWebSession As Variant = Nil)
 		  try
 		    
-		    
+		    #if TargetWeb
+		      if aWebSession is nil then
+		        aWebSession = Session
+		      end if
+		    #endif
 		    
 		    //Grab the current time in GMT
 		    Dim GMTZone As New TimeZone("GMT")
@@ -1702,45 +2738,338 @@ Class SentryController
 		    
 		    //Create the JSONItem that contains all the relevalt data
 		    dim content As Dictionary = self.GenerateJSON(mException, currentFunction, message, level, aWebSession)
-		    Dim data As String = xojo.GenerateJSON(content)
+		    
 		    
 		    If CancelSend(mException, content) then
 		      self.RemoveAllExtra
 		      self.RemoveAllTags
+		      self.lastRequest = nil
 		      self.mlastUUID = ""
 		      Return
 		    End If
 		    
 		    self.BeforeSend(mException, content)
 		    
-		    self.SendToSentry(lastUUID, data)
+		    
+		    
+		    if Options <> nil and Options.save_before_sending then
+		      SaveOfflineException(mlastUUID, content)
+		    end if
+		    
+		    Dim data As String = xojo.GenerateJSON(content)
+		    
+		    #if TargetAndroid
+		      self.SendToSentry_Android(lastUUID, data)
+		    #else
+		      self.SendToSentry(lastUUID, data)
+		    #endif
 		    
 		    self.AfterSend(mException, content)
 		    
 		    self.RemoveAllExtra
 		    self.RemoveAllTags
 		    
+		    self.lastRequest = nil
 		  Catch
 		    
 		  end try
 		  
-		  //send off the report
-		  'dim res as string = sock.SendRequest("POST",uri+"/api/"+ProjectID+"/store/",100)
-		  'if sock.ErrorCode=0 then
-		  'Return new JSONItem(res) //contains a report id
-		  'else
-		  'Return content //Something failed.. we could save this for submission on next run
-		  'end if
+		  
 		End Sub
 	#tag EndMethod
 
+	#tag Method, Flags = &h21, CompatibilityFlags = (TargetWeb and (Target32Bit or Target64Bit))
+		Private Function web_GetBrowserInfo(vSession As Variant, Type As String) As String
+		  #if TargetWeb
+		    Dim Session As WebSession = vSession
+		    
+		    Var UserAgent As String = Session.Header("User-Agent") 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_5) AppleWebKit/605.1.15 (KHTML,like Gecko) Version/13.1.1 Safari/605.1.15
+		    
+		    Var VersionNumber As String
+		    
+		    Select Case Type
+		    Case "Cookie"
+		      Return Session.Header("Cookie")
+		      
+		    Case "Host"
+		      Return Session.Header("Host")
+		      
+		    Case "Accept"
+		      Return Session.Header("Accept")
+		      
+		    Case "Accept-Language"
+		      Return Session.Header("Accept-Language")
+		      
+		    Case "Accept-Encoding"
+		      Return Session.Header("Accept-Encoding")
+		      
+		    Case "Connection"
+		      Return Session.Header("Connection")
+		      
+		    Case "HTTPS"
+		      Return Session.Header("HTTPS")
+		      
+		    Case "SCRIPT_NAME"
+		      Return Session.Header("SCRIPT_NAME")
+		      
+		    Case "Browser"
+		      
+		      If UserAgent.IndexOf("Blackberry") >= 0 Then
+		        Return "Blackberry"
+		      ElseIf UserAgent.IndexOf("Chrome") >= 0 Then
+		        Return "Chrome"
+		      Elseif UserAgent.IndexOf("CriOS") >= 0 then
+		        Return "Chrome"
+		      ElseIf UserAgent.IndexOf("ChromeOS") >= 0 Then
+		        Return "ChromeOS"
+		      ElseIf UserAgent.IndexOf("Firefox") >= 0 Then
+		        Return "Firefox"
+		      ElseIf UserAgent.IndexOf("Internet Explorer") >= 0 Then
+		        Return "Internet Explorer"
+		        
+		      ElseIf UserAgent.IndexOf("Edg") >= 0 Then
+		        Return "Edge"
+		        
+		      ElseIf UserAgent.IndexOf("Opera") >= 0 Then
+		        Return "Opera"
+		      ElseIf UserAgent.IndexOf("Opera Mini") >= 0 Then
+		        Return "Opera Mini"
+		      ElseIf UserAgent.IndexOf("Safari") >= 0 Then
+		        Return "Safari"
+		        
+		      ElseIf UserAgent.IndexOf("Unknown") >= 0 Then
+		        Return "Unknown"
+		      Else
+		        Return "Unknown"
+		      End If
+		      
+		    Case "SmallScreen" 'check if on a small screen device device
+		      If UserAgent.IndexOf("Android") >= 0 Or UserAgent.IndexOf("Blackberry") >= 0 Or UserAgent.IndexOf("Opera Mini") >= 0 Or UserAgent.IndexOf("Safari Mobile") >= 0 Then
+		        Return "True"
+		      Else
+		        Return ""
+		      End If
+		      
+		      If UserAgent.IndexOf("Phone") >= 0 Or UserAgent.IndexOf("iPhone") >= 0 Or UserAgent.IndexOf("iPod") >= 0 Then 'iPod Touch
+		        Return "True"
+		      Else
+		        Return ""
+		      End If
+		      
+		    Case "Mobile" 'check if on a mobile device
+		      If UserAgent.IndexOf("Android") >= 0 Or UserAgent.IndexOf("Blackberry") >= 0 Or UserAgent.IndexOf("Opera Mini") >= 0 Or UserAgent.IndexOf("Mobile") >= 0 Then 'Safari Mobile
+		        Return "True"
+		      Else
+		        Return ""
+		      End If
+		      
+		      If UserAgent.IndexOf("Phone") >= 0 Or UserAgent.IndexOf("iPhone") >= 0 Or UserAgent.IndexOf("iPod") >= 0 Or UserAgent.IndexOf("iPad") >= 0 Or UserAgent.IndexOf("Tablet") >= 0 Then
+		        Return "True"
+		      Else
+		        Return ""
+		      End If
+		      
+		    Case "Platform"
+		      If UserAgent.IndexOf("Android") >= 0 And UserAgent.IndexOf("Phone") >= 0 Then
+		        Return "AndroidPhone"
+		      ElseIf UserAgent.IndexOf("Android") >= 0 And UserAgent.IndexOf("Tablet") >= 0 Then
+		        Return "AndroidTablet"
+		      ElseIf UserAgent.IndexOf("Blackberry") >= 0 Then
+		        Return "Blackberry"
+		      ElseIf UserAgent.IndexOf("iPad") >= 0 Then
+		        Return "iPad"
+		      ElseIf UserAgent.IndexOf("iPhone") >= 0 Then
+		        Return "iPhone"
+		      ElseIf UserAgent.IndexOf("iPod") >= 0 Then
+		        Return "iPodTouch"
+		      ElseIf UserAgent.IndexOf("Linux") >= 0 Then
+		        Return "Linux"
+		      ElseIf UserAgent.IndexOf("Macintosh") >= 0 Then
+		        Return "macOS"
+		        
+		      ElseIf UserAgent.IndexOf("Windows") >= 0 Then
+		        Return "Windows"
+		      ElseIf UserAgent.IndexOf("Unknown") >= 0 Then
+		        Return "Unknown"
+		      Else
+		        Return "Unknown"
+		      End If
+		      
+		    Case "RenderingEngine"
+		      If UserAgent.IndexOf("Gecko") >= 0 Then
+		        Return "Gecko"
+		      ElseIf UserAgent.IndexOf("Presto") >= 0 Then
+		        Return "Presto"
+		      ElseIf UserAgent.IndexOf("Trident") >= 0 Then
+		        Return "Trident"
+		      ElseIf UserAgent.IndexOf("WebKit") >= 0 Then
+		        Return "WebKit"
+		      ElseIf UserAgent.IndexOf("Unknown") >= 0 Then
+		        Return "Unknown"
+		      Else
+		        Return "Unknown"
+		      End If
+		      
+		    Case "Version" 'Version/13.1.1 Safari/605.1.15
+		      
+		      if UserAgent.Contains("Version") then
+		        
+		        VersionNumber = UserAgent.NthField("Version", 2) 'get from Version on
+		        VersionNumber = VersionNumber.NthField(" ", 1) 'remove excess after space
+		        VersionNumber = ReplaceAll(VersionNumber, "/", "").Trim 'remove any leading or trailing slashes and spaces
+		        
+		      Elseif UserAgent.Contains("Chrome") then
+		        VersionNumber = UserAgent.NthField("Chrome", 2) 'get from Version on
+		        VersionNumber = VersionNumber.NthField(" ", 1) 'remove excess after space
+		        VersionNumber = ReplaceAll(VersionNumber, "/", "").Trim 'remove any leading or trailing slashes and spaces
+		        
+		      Elseif UserAgent.Contains("CriOS") then
+		        VersionNumber = UserAgent.NthField("CriOS", 2) 'get from Version on
+		        VersionNumber = VersionNumber.NthField(" ", 1) 'remove excess after space
+		        VersionNumber = ReplaceAll(VersionNumber, "/", "").Trim 'remove any leading or trailing slashes and spaces
+		        
+		      Elseif UserAgent.Contains("Firefox") then
+		        VersionNumber = UserAgent.NthField("Firefox", 2) 'get from Version on
+		        VersionNumber = VersionNumber.NthField(" ", 1) 'remove excess after space
+		        VersionNumber = ReplaceAll(VersionNumber, "/", "").Trim 'remove any leading or trailing slashes and spaces
+		        
+		      end if
+		      
+		    End Select
+		    
+		    Return VersionNumber
+		    End Select
+		    
+		    Return ""
+		    
+		    'Select Case Type
+		    'Case "Browser"
+		    'Select Case Session.Browser
+		    'Case WebSession.BrowserType.Android
+		    'Return "Android"
+		    'Case WebSession.BrowserType.Blackberry
+		    'Return "Blackberry"
+		    'Case WebSession.BrowserType.Chrome
+		    'Return "Chrome"
+		    'Case WebSession.BrowserType.ChromeOS
+		    'Return "ChromeOS"
+		    'Case WebSession.BrowserType.Firefox
+		    'Return "Firefox"
+		    'Case WebSession.BrowserType.InternetExplorer
+		    'Return "Internet Explorer"
+		    'Case WebSession.BrowserType.Opera
+		    'Return "Opera"
+		    'Case WebSession.BrowserType.OperaMini
+		    'Return "Opera Mini"
+		    'Case WebSession.BrowserType.Safari
+		    'Return "Safari"
+		    'Case WebSession.BrowserType.SafariMobile
+		    'Return "Safari Mobile"
+		    'Case WebSession.BrowserType.Unknown
+		    'Return "Unknown"
+		    'Case Else
+		    'Return "Unknown"
+		    'End Select
+		    '
+		    'Case "SmallScreen" 'check if on a small screen device device
+		    'Select Case Session.Browser
+		    'Case WebSession.BrowserType.Android, WebSession.BrowserType.Blackberry, WebSession.BrowserType.OperaMini, WebSession.BrowserType.SafariMobile
+		    'Return "True"
+		    'End Select
+		    'Select Case Session.Platform
+		    'Case WebSession.PlatformType.AndroidPhone, WebSession.PlatformType.Blackberry, WebSession.PlatformType.iPhone, WebSession.PlatformType.iPodTouch
+		    'Return "True"
+		    'Case Else
+		    'Return ""
+		    'End Select
+		    '
+		    'Case "Mobile" 'check if on a mobile device
+		    'Select Case Session.Browser
+		    'Case WebSession.BrowserType.Android, WebSession.BrowserType.Blackberry, WebSession.BrowserType.OperaMini, WebSession.BrowserType.SafariMobile
+		    'Return "True"
+		    'End Select
+		    'Select Case Session.Platform
+		    'Case WebSession.PlatformType.AndroidPhone, WebSession.PlatformType.AndroidTablet, WebSession.PlatformType.Blackberry, WebSession.PlatformType.iPad, WebSession.PlatformType.iPhone, WebSession.PlatformType.iPodTouch
+		    'Return "True"
+		    'Case Else
+		    'Return ""
+		    'End Select
+		    '
+		    'Case "Platform"
+		    'Select Case Session.Platform
+		    'Case WebSession.PlatformType.AndroidPhone
+		    'Return "AndroidPhone"
+		    'Case WebSession.PlatformType.AndroidTablet
+		    'Return "AndroidTablet"
+		    'Case WebSession.PlatformType.Blackberry
+		    'Return "Blackberry"
+		    'Case WebSession.PlatformType.iPad
+		    'Return "iPad"
+		    'Case WebSession.PlatformType.iPhone
+		    'Return "iPhone"
+		    'Case WebSession.PlatformType.iPodTouch
+		    'Return "iPodTouch"
+		    'Case WebSession.PlatformType.Linux
+		    'Return "Linux"
+		    'Case WebSession.PlatformType.Macintosh
+		    'Return "Macintosh"
+		    'Case WebSession.PlatformType.PS3
+		    'Return "PS3"
+		    'Case WebSession.PlatformType.Unknown
+		    'Return "Unknown"
+		    'Case WebSession.PlatformType.WebOS
+		    'Return "WebOS"
+		    'Case WebSession.PlatformType.Wii
+		    'Return "Wii"
+		    'Case WebSession.PlatformType.Windows
+		    'Return "Windows"
+		    'Case Else
+		    'Return "Unknown"
+		    'End Select
+		    '
+		    'Case "RenderingEngine"
+		    'Select Case Session.RenderingEngine
+		    'Case WebSession.EngineType.Gecko
+		    'Return "Gecko"
+		    'Case WebSession.EngineType.Presto
+		    'Return "Presto"
+		    'Case WebSession.EngineType.Trident
+		    'Return "Trident"
+		    'Case WebSession.EngineType.Unknown
+		    'Return "Unknown"
+		    'Case WebSession.EngineType.WebKit
+		    'Return "WebKit"
+		    'Case Else
+		    'Return "Unknown"
+		    'End Select
+		    '
+		    'Case "Version"
+		    'Return Session.BrowserVersion
+		    '
+		    'End Select
+		    
+		    'Return ""
+		    
+		    
+		  #endif
+		End Function
+	#tag EndMethod
 
-	#tag Property, Flags = &h1, CompatibilityFlags = (TargetConsole and (Target32Bit or Target64Bit)) or  (TargetDesktop and (Target32Bit or Target64Bit)) or  (TargetIOS and (Target64Bit))
+
+	#tag Property, Flags = &h1, CompatibilityFlags = (TargetConsole and (Target32Bit or Target64Bit)) or  (TargetDesktop and (Target32Bit or Target64Bit)) or  (TargetIOS and (Target64Bit)) or  (TargetAndroid and (Target64Bit))
 		Protected breadcrumbs() As Dictionary
 	#tag EndProperty
 
 	#tag Property, Flags = &h1, CompatibilityFlags = (TargetWeb and (Target32Bit or Target64Bit)) or  (TargetDesktop and (Target64Bit))
 		Protected breadcrumbsWeb As Dictionary
+	#tag EndProperty
+
+	#tag Property, Flags = &h1
+		Protected currentSpansIDs() As String
+	#tag EndProperty
+
+	#tag Property, Flags = &h1
+		Protected currentTrace As SentryTrace
 	#tag EndProperty
 
 	#tag Property, Flags = &h21
@@ -1753,6 +3082,10 @@ Class SentryController
 
 	#tag Property, Flags = &h21
 		Private globalTags As Dictionary
+	#tag EndProperty
+
+	#tag Property, Flags = &h1
+		Protected lastRequest As Dictionary
 	#tag EndProperty
 
 	#tag ComputedProperty, Flags = &h0, Description = 546865206964656E74696669657220285555494429206F6620746865206C6173742073656E7420457863657074696F6E2E
@@ -1769,6 +3102,10 @@ Class SentryController
 	#tag EndProperty
 
 	#tag Property, Flags = &h21
+		Private mProjectID As String
+	#tag EndProperty
+
+	#tag Property, Flags = &h21
 		Private now As DateTime
 	#tag EndProperty
 
@@ -1780,9 +3117,14 @@ Class SentryController
 		pauseUntil As DateTime
 	#tag EndProperty
 
-	#tag Property, Flags = &h21
-		Private ProjectID As String
-	#tag EndProperty
+	#tag ComputedProperty, Flags = &h0, Description = 53656E74727927732070726F6A6563742049442E2028526561642D6F6E6C7929
+		#tag Getter
+			Get
+			  Return mProjectID
+			End Get
+		#tag EndGetter
+		ProjectID As String
+	#tag EndComputedProperty
 
 	#tag Property, Flags = &h21
 		Private PublicKey As String
@@ -1812,13 +3154,13 @@ Class SentryController
 		Private URI As String
 	#tag EndProperty
 
-	#tag Property, Flags = &h0
+	#tag Property, Flags = &h0, CompatibilityFlags = (TargetConsole and (Target32Bit or Target64Bit)) or  (TargetDesktop and (Target32Bit or Target64Bit)) or  (TargetIOS and (Target64Bit)) or  (TargetAndroid and (Target64Bit))
 		user As Xojo_Sentry.SentryUser
 	#tag EndProperty
 
-
-	#tag Constant, Name = Version, Type = Text, Dynamic = False, Default = \"0.4", Scope = Private
-	#tag EndConstant
+	#tag Property, Flags = &h1
+		Protected webUsers As Dictionary
+	#tag EndProperty
 
 
 	#tag ViewBehavior
@@ -1864,6 +3206,14 @@ Class SentryController
 		#tag EndViewProperty
 		#tag ViewProperty
 			Name="lastUUID"
+			Visible=false
+			Group="Behavior"
+			InitialValue=""
+			Type="String"
+			EditorType="MultiLineEditor"
+		#tag EndViewProperty
+		#tag ViewProperty
+			Name="ProjectID"
 			Visible=false
 			Group="Behavior"
 			InitialValue=""

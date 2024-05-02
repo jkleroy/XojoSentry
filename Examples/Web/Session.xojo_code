@@ -6,16 +6,20 @@ Inherits WebSession
   disconnectmessage=You have been disconnected from this application.
   confirmmessage=
   AllowTabOrderWrap=True
+  ColorMode=0
+  SendEventsInBatches=False
 #tag EndSession
 	#tag Event
-		Sub Closing(appQuitting as Boolean)
+		Sub Closing(appQuitting As Boolean)
 		  //Removes the session breadcrumbs
 		  app.sentry.RemoveSessionBreadcrumbs(self.Identifier)
+		  
+		  app.sentry.RemoveWebUser(self.Identifier)
 		End Sub
 	#tag EndEvent
 
 	#tag Event
-		Sub JavaScriptError(ErrorName as String, ErrorMessage as String, ErrorStack as String)
+		Sub JavaScriptError(errorName as String, errorMessage as String, errorStack as String)
 		  
 		  
 		  
@@ -61,7 +65,6 @@ Inherits WebSession
 		    
 		    
 		    
-		    app.sentry.user = self.sentry_user
 		    
 		    #if DebugBuild
 		      app.Sentry.SubmitException(error, CurrentMethodName, "SessionLevel", Xojo_Sentry.errorLevel.debug, self)
@@ -74,8 +77,7 @@ Inherits WebSession
 		    
 		  Catch err
 		    
-		  Finally
-		    app.sentry.user = nil
+		    
 		    
 		  end try
 		  
@@ -107,13 +109,13 @@ Inherits WebSession
 		  user.user_id = "1234" //The user's unique ID
 		  
 		  
+		  app.sentry.AddWebUser(user, self.Identifier)
 		  
-		  self.sentry_user = user
 		End Sub
 	#tag EndEvent
 
 	#tag Event
-		Function UnhandledException(Error As RuntimeException) As Boolean
+		Function UnhandledException(error As RuntimeException) As Boolean
 		  
 		  try
 		    
@@ -151,7 +153,6 @@ Inherits WebSession
 		    
 		    app.sentry.AddExtraKeyValue("Session.RawHeaders", self.RawHeaders)
 		    
-		    app.sentry.user = self.sentry_user
 		    
 		    #if DebugBuild
 		      app.Sentry.SubmitException(error, "", "SessionLevel", Xojo_Sentry.errorLevel.debug, self)
@@ -164,8 +165,7 @@ Inherits WebSession
 		    
 		  Catch err
 		    
-		  Finally
-		    app.sentry.user = nil
+		    
 		    
 		  end try
 		  
@@ -195,6 +195,35 @@ Inherits WebSession
 
 
 	#tag ViewBehavior
+		#tag ViewProperty
+			Name="ColorMode"
+			Visible=false
+			Group="Behavior"
+			InitialValue=""
+			Type="WebSession.ColorModes"
+			EditorType="Enum"
+			#tag EnumValues
+				"0 - Auto"
+				"1 - Light"
+				"2 - Dark"
+			#tag EndEnumValues
+		#tag EndViewProperty
+		#tag ViewProperty
+			Name="UserPrefersDarkMode"
+			Visible=false
+			Group="Behavior"
+			InitialValue=""
+			Type="Boolean"
+			EditorType=""
+		#tag EndViewProperty
+		#tag ViewProperty
+			Name="SendEventsInBatches"
+			Visible=false
+			Group="Behavior"
+			InitialValue=""
+			Type="Boolean"
+			EditorType=""
+		#tag EndViewProperty
 		#tag ViewProperty
 			Name="Index"
 			Visible=true

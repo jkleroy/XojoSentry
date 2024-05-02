@@ -31,20 +31,21 @@ Begin DesktopWindow Window1
       Index           =   -2147483648
       Left            =   0
       LockBottom      =   False
-      LockedInPosition=   False
+      LockedInPosition=   True
       LockLeft        =   True
       LockRight       =   False
       LockTop         =   True
       PanelCount      =   4
       Panels          =   ""
       Scope           =   2
+      SelectedPanelIndex=   0
       TabIndex        =   8
       TabPanelIndex   =   0
       TabStop         =   False
       Tooltip         =   ""
       Top             =   0
       Transparent     =   False
-      Value           =   0
+      Value           =   2
       Visible         =   True
       Width           =   600
       Begin DesktopButton btAttachment
@@ -73,7 +74,7 @@ Begin DesktopWindow Window1
          TabPanelIndex   =   1
          TabStop         =   True
          Tooltip         =   ""
-         Top             =   84
+         Top             =   108
          Transparent     =   False
          Underline       =   False
          Visible         =   True
@@ -105,7 +106,7 @@ Begin DesktopWindow Window1
          TabPanelIndex   =   1
          TabStop         =   True
          Tooltip         =   ""
-         Top             =   116
+         Top             =   140
          Transparent     =   False
          Underline       =   False
          Visible         =   True
@@ -137,7 +138,7 @@ Begin DesktopWindow Window1
          TabPanelIndex   =   1
          TabStop         =   True
          Tooltip         =   ""
-         Top             =   52
+         Top             =   76
          Transparent     =   False
          Underline       =   False
          Visible         =   True
@@ -202,7 +203,7 @@ Begin DesktopWindow Window1
          TabPanelIndex   =   1
          TabStop         =   True
          Tooltip         =   ""
-         Top             =   20
+         Top             =   44
          Transparent     =   False
          Underline       =   False
          Visible         =   True
@@ -337,7 +338,7 @@ Begin DesktopWindow Window1
          Visible         =   True
          Width           =   164
       End
-      Begin DesktopButton Button5
+      Begin DesktopButton btTracing
          AllowAutoDeactivate=   True
          Bold            =   False
          Cancel          =   False
@@ -431,17 +432,82 @@ Begin DesktopWindow Window1
          Top             =   52
          Transparent     =   False
          Underline       =   False
-         Visible         =   True
+         Visible         =   False
          Width           =   560
       End
+      Begin DesktopButton btTestSentry
+         AllowAutoDeactivate=   True
+         Bold            =   False
+         Cancel          =   False
+         Caption         =   "Test Sentry Integration"
+         Default         =   False
+         Enabled         =   True
+         FontName        =   "System"
+         FontSize        =   0.0
+         FontUnit        =   0
+         Height          =   20
+         Index           =   -2147483648
+         InitialParent   =   "PagePanel1"
+         Italic          =   False
+         Left            =   20
+         LockBottom      =   False
+         LockedInPosition=   False
+         LockLeft        =   True
+         LockRight       =   False
+         LockTop         =   True
+         MacButtonStyle  =   0
+         Scope           =   0
+         TabIndex        =   5
+         TabPanelIndex   =   1
+         TabStop         =   True
+         Tooltip         =   ""
+         Top             =   12
+         Transparent     =   False
+         Underline       =   False
+         Visible         =   True
+         Width           =   250
+      End
+      Begin DesktopProgressBar ProgressBar1
+         AllowAutoDeactivate=   True
+         AllowTabStop    =   True
+         Enabled         =   True
+         Height          =   20
+         Indeterminate   =   True
+         Index           =   -2147483648
+         InitialParent   =   "PagePanel1"
+         Left            =   221
+         LockBottom      =   False
+         LockedInPosition=   False
+         LockLeft        =   True
+         LockRight       =   True
+         LockTop         =   True
+         MaximumValue    =   100
+         Scope           =   0
+         TabIndex        =   2
+         TabPanelIndex   =   3
+         Tooltip         =   ""
+         Top             =   20
+         Transparent     =   False
+         Value           =   0.0
+         Visible         =   False
+         Width           =   359
+      End
    End
-   Begin Toolbar1 Toolbar11
+   Begin Toolbar1 myToolbar
       Enabled         =   True
       Index           =   -2147483648
       LockedInPosition=   False
       Scope           =   2
       TabPanelIndex   =   0
       Visible         =   True
+   End
+   Begin Thread Thread1
+      Index           =   -2147483648
+      LockedInPosition=   False
+      Priority        =   5
+      Scope           =   0
+      StackSize       =   0
+      TabPanelIndex   =   0
    End
 End
 #tag EndDesktopWindow
@@ -466,6 +532,9 @@ End
 		  end if
 		  
 		  lblStatusTracing.Text = ""
+		  
+		  
+		  
 		End Sub
 	#tag EndEvent
 
@@ -478,7 +547,11 @@ End
 
 	#tag Method, Flags = &h21
 		Private Sub GotoSentryPerformance()
-		  ShowURL("https://sentry.io/performance")
+		  
+		  Dim url As String = "https://sentry.io/performance/?project=_ProjectID_&statsPeriod=7d&utc=true"
+		  
+		  System.GotoURL(url.Replace("_ProjectID_", app.sentry.ProjectID))
+		  
 		End Sub
 	#tag EndMethod
 
@@ -486,12 +559,10 @@ End
 		Private Sub LengthyProcess()
 		  var sp as SentrySpan = app.sentry.StartSpan(nil, "process", CurrentMethodName)
 		  
-		  Var endtime As Double = System.Microseconds + 500*1000 + System.Random.InRange(200, 900)
 		  
-		  While System.Microseconds < endtime
-		    Var i as Integer
-		  Wend
-		  
+		  For i as Integer = 0 to 2
+		    LengthySubProcess
+		  Next
 		  
 		  //When sp goes out of scope, it is automatically added to the trace
 		End Sub
@@ -520,6 +591,22 @@ End
 		  var sp as SentrySpan = app.sentry.StartSpan(nil, "process", CurrentMethodName)
 		  
 		  Var endtime As Double = System.Microseconds + 1000*System.Random.InRange(200, 900)
+		  
+		  While System.Microseconds < endtime
+		    Var i as Integer
+		  Wend
+		  
+		  
+		  
+		  //When sp goes out of scope, it is automatically added to the trace
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h21
+		Private Sub LengthySubProcess()
+		  var sp as SentrySpan = app.sentry.StartSpan(nil, "process", CurrentMethodName)
+		  
+		  Var endtime As Double = System.Microseconds + 500*1000 + System.Random.InRange(200, 900)
 		  
 		  While System.Microseconds < endtime
 		    Var i as Integer
@@ -629,7 +716,7 @@ End
 		    raise error
 		    
 		  Catch err
-		    app.sentry.SubmitException(err, CurrentMethodName)
+		    app.sentry.SubmitException(err, CurrentMethodName, "Testing Breadcrumbs")
 		    
 		  end try
 		  
@@ -662,36 +749,21 @@ End
 		End Sub
 	#tag EndEvent
 #tag EndEvents
-#tag Events Button5
+#tag Events btTracing
 	#tag Event
 		Sub Pressed()
-		  Dim transaction as SentryTrace = app.sentry.StartTracing("C_Test_Tracing", "Description of an event")
-		  
-		  
-		  
-		  LengthyProcess //Some long process
-		  
-		  LengthyProcess2
-		  
-		  LengthyProcess
 		  
 		  
 		  
 		  
-		  //Random errors
-		  if System.Random.InRange(0, 100) < 30 then
-		    transaction.status = "internal_error"
-		    transaction.Finish("something went wrong")
-		  Else
-		    
-		    //Stop tracing
-		    transaction.Finish("all good")
-		  end if
+		  me.Enabled = False
+		  ProgressBar1.Visible = True
+		  
+		  Thread1.Run
 		  
 		  
-		  lblStatusTracing.Text = "Long process took: " + transaction.elapsed.ToString + " seconds." + EndOfLine + "Now go to sentry/performance"
 		  
-		  timer.CallLater(1000, AddressOf GotoSentryPerformance)
+		  
 		End Sub
 	#tag EndEvent
 #tag EndEvents
@@ -734,7 +806,15 @@ End
 		End Sub
 	#tag EndEvent
 #tag EndEvents
-#tag Events Toolbar11
+#tag Events btTestSentry
+	#tag Event
+		Sub Pressed()
+		  
+		  app.sentry.SendTestException()
+		End Sub
+	#tag EndEvent
+#tag EndEvents
+#tag Events myToolbar
 	#tag Event
 		Sub Pressed(item As DesktopToolbarItem)
 		  app.sentry.AddBreadcrumb("ui.click", CurrentMethodName + "_" + item.Caption)
@@ -759,6 +839,56 @@ End
 		    
 		    
 		  End Select
+		End Sub
+	#tag EndEvent
+#tag EndEvents
+#tag Events Thread1
+	#tag Event
+		Sub Run()
+		  Dim transaction as SentryTrace = app.sentry.StartTracing("thread", "Desktop_Test_Tracing")
+		  
+		  LengthyProcess
+		  
+		  LengthyProcess2
+		  
+		  LengthyProcess3
+		  
+		  
+		  
+		  
+		  //Random errors
+		  if System.Random.InRange(0, 100) < 30 then
+		    transaction.status = "internal_error"
+		    transaction.Finish("something went wrong")
+		  Else
+		    
+		    //Stop tracing
+		    transaction.Finish("all good")
+		  end if
+		  
+		  me.AddUserInterfaceUpdate("completed":transaction.elapsed)
+		End Sub
+	#tag EndEvent
+	#tag Event
+		Sub UserInterfaceUpdate(data() as Dictionary)
+		  
+		  for each dic as Dictionary in data
+		    
+		    Dim elapsed As Double
+		    
+		    elapsed = dic.Lookup("completed", -1)
+		    
+		    
+		    lblStatusTracing.Text = "Long process took: " + elapsed.ToString + " seconds." + EndOfLine + "Now go to sentry/performance"
+		    
+		  next
+		  
+		  lblStatusTracing.Visible = True
+		  
+		  btTracing.Enabled = True
+		  ProgressBar1.Visible = False
+		  
+		  timer.CallLater(1000, AddressOf GotoSentryPerformance)
 		End Sub
 	#tag EndEvent
 #tag EndEvents
