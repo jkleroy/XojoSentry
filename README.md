@@ -7,6 +7,7 @@
  API for using https://sentry.io
 
 Release date: 2023-01-10
+
 Latest update: 2024-05-01
 
 Language: Xojo 2023r3 Desktop, Web & iOS Project
