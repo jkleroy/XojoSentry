@@ -14,39 +14,47 @@ Begin MobileScreen Screen1
    Title           =   "Sentry Example"
    Top             =   0
    Begin MobileButton Button1
-      AutoLayout      =   Button1, 9, <Parent>, 9, False, +1.00, 4, 1, 0, , True
-      AutoLayout      =   Button1, 8, , 0, False, +1.00, 4, 1, 32, , True
-      AutoLayout      =   Button1, 3, TopLayoutGuide, 4, False, +1.00, 4, 1, 60, , True
+      AccessibilityHint=   ""
+      AccessibilityLabel=   ""
       AutoLayout      =   Button1, 7, , 0, False, +1.00, 4, 1, 226, , True
+      AutoLayout      =   Button1, 9, <Parent>, 9, False, +1.00, 4, 1, 0, , True
+      AutoLayout      =   Button1, 3, <Parent>, 3, False, +1.00, 4, 1, 148, , True
+      AutoLayout      =   Button1, 8, , 0, False, +1.00, 4, 1, 32, , True
       Caption         =   "Create an Exception"
       CaptionColor    =   &c000000
+      ControlCount    =   0
       Enabled         =   True
       Height          =   32
       Left            =   47
       LockedInPosition=   False
       Scope           =   2
-      TabPanelIndex   =   0
+      TabPanelIndex   =   "0"
       TextFont        =   ""
       TextSize        =   0
-      Top             =   125
+      TintColor       =   &c000000
+      Top             =   148
       Visible         =   True
       Width           =   226
    End
    Begin MobileButton Button2
+      AccessibilityHint=   ""
+      AccessibilityLabel=   ""
       AutoLayout      =   Button2, 8, , 0, False, +1.00, 4, 1, 32, , True
-      AutoLayout      =   Button2, 1, , 0, False, +1.00, 4, 1, 20, , True
+      AutoLayout      =   Button2, 1, <Parent>, 1, False, +1.00, 4, 1, 20, , True
       AutoLayout      =   Button2, 2, <Parent>, 2, False, +1.00, 4, 1, -*kStdGapCtlToViewH, , True
-      AutoLayout      =   Button2, 3, Button1, 4, False, +1.00, 4, 1, 40, , True
+      AutoLayout      =   Button2, 3, <Parent>, 3, False, +1.00, 4, 1, 197, , True
       Caption         =   "Create an unhandled Exception"
       CaptionColor    =   &c000000
+      ControlCount    =   0
       Enabled         =   True
       Height          =   32
       Left            =   20
       LockedInPosition=   False
       Scope           =   2
-      TabPanelIndex   =   0
+      TabPanelIndex   =   "0"
       TextFont        =   ""
       TextSize        =   0
+      TintColor       =   &c000000
       Top             =   197
       Visible         =   True
       Width           =   280
@@ -66,6 +74,9 @@ Begin MobileScreen Screen1
       LineBreakMode   =   0
       LockedInPosition=   False
       Scope           =   2
+      SelectedText    =   ""
+      SelectionLength =   0
+      SelectionStart  =   0
       Text            =   "Sentry Status"
       TextColor       =   &c000000
       TextFont        =   ""
@@ -95,6 +106,29 @@ Begin MobileScreen Screen1
       TextSize        =   0
       TintColor       =   &c000000
       Top             =   269
+      Visible         =   True
+      Width           =   226
+   End
+   Begin MobileButton Button4
+      AccessibilityHint=   ""
+      AccessibilityLabel=   ""
+      AutoLayout      =   Button4, 1, Button3, 1, False, +1.00, 4, 1, 0, , True
+      AutoLayout      =   Button4, 7, , 0, False, +1.00, 4, 1, 226, , True
+      AutoLayout      =   Button4, 3, <Parent>, 3, False, +1.00, 4, 1, 97, , True
+      AutoLayout      =   Button4, 8, , 0, False, +1.00, 4, 1, 32, , True
+      Caption         =   "Test Sentry Integration"
+      CaptionColor    =   &c000000
+      ControlCount    =   0
+      Enabled         =   True
+      Height          =   32
+      Left            =   47
+      LockedInPosition=   False
+      Scope           =   2
+      TabPanelIndex   =   "0"
+      TextFont        =   ""
+      TextSize        =   0
+      TintColor       =   &c000000
+      Top             =   97
       Visible         =   True
       Width           =   226
    End
@@ -181,6 +215,14 @@ End
 		  app.sentry.AddBreadcrumbNavigation("Screen1", "Screen2", "")
 		  
 		  w.Show
+		End Sub
+	#tag EndEvent
+#tag EndEvents
+#tag Events Button4
+	#tag Event
+		Sub Pressed()
+		  
+		  app.sentry.SendTestException
 		End Sub
 	#tag EndEvent
 #tag EndEvents

@@ -530,8 +530,7 @@ End
 			"6 - Rounded Window"
 			"7 - Global Floating Window"
 			"8 - Sheet Window"
-			"9 - Metal Window"
-			"11 - Modeless Dialog"
+			"9 - Modeless Dialog"
 		#tag EndEnumValues
 	#tag EndViewProperty
 	#tag ViewProperty
@@ -683,6 +682,6 @@ End
 		Group="Behavior"
 		InitialValue=""
 		Type="String"
-		EditorType=""
+		EditorType="MultiLineEditor"
 	#tag EndViewProperty
 #tag EndViewBehavior

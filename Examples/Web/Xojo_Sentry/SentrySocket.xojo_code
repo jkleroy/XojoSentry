@@ -1,8 +1,12 @@
 #tag Class
 Private Class SentrySocket
 Inherits URLConnection
+	#tag CompatibilityFlags = ( TargetConsole and ( Target32Bit or Target64Bit ) ) or ( TargetWeb and ( Target32Bit or Target64Bit ) ) or ( TargetDesktop and ( Target32Bit or Target64Bit ) ) or ( TargetIOS and ( Target64Bit ) ) or ( TargetAndroid and ( Target64Bit ) )
 	#tag Event
 		Sub ContentReceived(URL As String, HTTPStatus As Integer, content As String)
+		  #if DebugBuild and kVerbose
+		    System.DebugLog CurrentMethodName + " HTTPStatus: "  + HTTPStatus.ToString '+ EndOfLine + content
+		  #endif
 		  
 		  Dim response As new SentryResponse(URL, HTTPStatus, self)
 		  
@@ -19,6 +23,10 @@ Inherits URLConnection
 
 	#tag Event
 		Sub Error(e As RuntimeException)
+		  
+		  #if DebugBuild and kVerbose
+		    System.DebugLog CurrentMethodName + " " + e.Message
+		  #endif
 		  
 		  Dim response As new SentryResponse("", 0, self)
 		  

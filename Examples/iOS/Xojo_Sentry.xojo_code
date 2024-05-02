@@ -1,5 +1,10 @@
 #tag Module
 Protected Module Xojo_Sentry
+	#tag DelegateDeclaration, Flags = &h0, CompatibilityFlags = (TargetAndroid and (Target64Bit))
+		Delegate Sub SentryDelegate(data As String, error As RuntimeException, response As SentryResponse)
+	#tag EndDelegateDeclaration
+
+
 	#tag Note, Name = Using Sentry for a Desktop Project
 		
 		# To use Sentry in your own Web project
@@ -15,7 +20,10 @@ Protected Module Xojo_Sentry
 		# Optional
 		
 		## If you are using breadcrumbs
-		6. Copy/paste the code from App.activated.Closing event into your project
+		6. Copy/paste the code from the following events to your project:
+		- App.activated
+		- App.CancelClosing
+		- App.Deactivated 
 		
 		
 		## If your app manages users
@@ -69,6 +77,16 @@ Protected Module Xojo_Sentry
 		7. Copy/paste the code from App.Opening event into your project, 
 		in a relevant area where you have user information
 	#tag EndNote
+
+
+	#tag Constant, Name = kReleaseDate, Type = Double, Dynamic = False, Default = \"20240501", Scope = Private
+	#tag EndConstant
+
+	#tag Constant, Name = kVerbose, Type = Boolean, Dynamic = False, Default = \"False", Scope = Private, Description = 53657420746F205472756520666F7220646562756767696E67206D65737361676573202844656275674275696C64206F6E6C7929
+	#tag EndConstant
+
+	#tag Constant, Name = kVersion, Type = String, Dynamic = False, Default = \"0.6", Scope = Private
+	#tag EndConstant
 
 
 	#tag Enum, Name = errorLevel, Type = Integer, Flags = &h1

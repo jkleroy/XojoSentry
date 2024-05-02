@@ -2,11 +2,13 @@
 Protected Class App
 Inherits WebApplication
 	#tag Event
-		Sub Opening(args() as String)
+		Sub Opening(args() As String)
 		  
 		  
 		  
 		  Dim DSN As String = "<<YOUR DSN>>"
+		  
+		  
 		  
 		  //Initialise Sentry
 		  If DSN.IsEmpty or DSN = "<<YOUR DSN>>" then
@@ -23,13 +25,19 @@ Inherits WebApplication
 		  self.sentry.Options.include_StackFrame_address = False
 		  self.sentry.Options.max_breadcrumbs = 100
 		  self.sentry.Options.sample_rate = 1.0 //Keep this value at 1.0 when debugging, change value for a released app
+		  self.sentry.Options.save_before_sending = False //Set to True if your app will quit on exceptions
+		  #if DebugBuild
+		    self.sentry.Options.traces_sample_rate = 1.0 //Keep this value at 1.0 when debugging, change value for a released app
+		  #else
+		    self.sentry.Options.traces_sample_rate = 0.1
+		  #endif
 		  
 		  
 		End Sub
 	#tag EndEvent
 
 	#tag Event
-		Function UnhandledException(Error As RuntimeException) As Boolean
+		Function UnhandledException(error As RuntimeException) As Boolean
 		  
 		  #if DebugBuild
 		    Dim reason As String

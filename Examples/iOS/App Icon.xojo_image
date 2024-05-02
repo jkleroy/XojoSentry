@@ -286,5 +286,71 @@ Image App Icon
 			VSize = 1024.00
 		#tag EndImageSpecification
 	#tag EndImageRepresentation
+	#tag ImageRepresentation
+		#tag ImageSpecification
+			Comment = Android 36x36 Icon
+			Device = 1
+			HSize = 36.00
+			Orientation = Any
+			Platform = 16
+			PPI = 72
+			VSize = 36.00
+		#tag EndImageSpecification
+	#tag EndImageRepresentation
+	#tag ImageRepresentation
+		#tag ImageSpecification
+			Comment = Android 48x48 Icon
+			Device = 1
+			HSize = 48.00
+			Orientation = Any
+			Platform = 16
+			PPI = 72
+			VSize = 48.00
+		#tag EndImageSpecification
+	#tag EndImageRepresentation
+	#tag ImageRepresentation
+		#tag ImageSpecification
+			Comment = Android 72x72 Icon
+			Device = 1
+			HSize = 72.00
+			Orientation = Any
+			Platform = 16
+			PPI = 72
+			VSize = 72.00
+		#tag EndImageSpecification
+	#tag EndImageRepresentation
+	#tag ImageRepresentation
+		#tag ImageSpecification
+			Comment = Android 96x96 Icon
+			Device = 1
+			HSize = 96.00
+			Orientation = Any
+			Platform = 16
+			PPI = 72
+			VSize = 96.00
+		#tag EndImageSpecification
+	#tag EndImageRepresentation
+	#tag ImageRepresentation
+		#tag ImageSpecification
+			Comment = Android 144x144 Icon
+			Device = 1
+			HSize = 144.00
+			Orientation = Any
+			Platform = 16
+			PPI = 72
+			VSize = 144.00
+		#tag EndImageSpecification
+	#tag EndImageRepresentation
+	#tag ImageRepresentation
+		#tag ImageSpecification
+			Comment = Android 192x192 Icon
+			Device = 1
+			HSize = 192.00
+			Orientation = Any
+			Platform = 16
+			PPI = 72
+			VSize = 192.00
+		#tag EndImageSpecification
+	#tag EndImageRepresentation
 End Image
 #tag EndMultiImage

@@ -1,37 +1,38 @@
-#tag WebPage
-Begin WebDialog WebDialogSentryOptions
+#tag WebContainerControl
+Begin WebContainer ContainerSimple
    Compatibility   =   ""
+   ControlCount    =   0
    ControlID       =   ""
    Enabled         =   True
-   Height          =   400
-   Index           =   -2147483648
+   Height          =   370
    Indicator       =   0
    LayoutDirection =   0
    LayoutType      =   0
    Left            =   0
    LockBottom      =   False
    LockHorizontal  =   False
-   LockLeft        =   False
+   LockLeft        =   True
    LockRight       =   False
-   LockTop         =   False
+   LockTop         =   True
    LockVertical    =   False
+   ScrollDirection =   0
    TabIndex        =   0
    Top             =   0
    Visible         =   True
-   Width           =   600
+   Width           =   510
    _mDesignHeight  =   0
    _mDesignWidth   =   0
    _mPanelIndex    =   -1
-   Begin WebLabel Label1
-      Bold            =   True
+   Begin WebButton Button1
+      AllowAutoDisable=   False
+      Cancel          =   False
+      Caption         =   "Create an Exception"
       ControlID       =   ""
+      Default         =   False
       Enabled         =   True
-      FontName        =   ""
-      FontSize        =   0.0
       Height          =   38
       Index           =   -2147483648
-      Indicator       =   ""
-      Italic          =   False
+      Indicator       =   3
       Left            =   20
       LockBottom      =   False
       LockedInPosition=   False
@@ -40,29 +41,55 @@ Begin WebDialog WebDialogSentryOptions
       LockRight       =   False
       LockTop         =   True
       LockVertical    =   False
-      Multiline       =   False
+      PanelIndex      =   0
       Scope           =   0
       TabIndex        =   0
       TabStop         =   True
-      Text            =   "Sentry Settings"
-      TextAlignment   =   0
-      TextColor       =   &c00000000
       Tooltip         =   ""
-      Top             =   20
-      Underline       =   False
+      Top             =   66
       Visible         =   True
-      Width           =   264
+      Width           =   282
       _mPanelIndex    =   -1
    End
-   Begin WebCheckbox Checkbox1
-      Caption         =   "Include Stack Frame address"
+   Begin WebButton Button2
+      AllowAutoDisable=   False
+      Cancel          =   False
+      Caption         =   "Create an unhandled Exception"
+      ControlID       =   ""
+      Default         =   False
+      Enabled         =   True
+      Height          =   38
+      Index           =   -2147483648
+      Indicator       =   4
+      Left            =   20
+      LockBottom      =   False
+      LockedInPosition=   False
+      LockHorizontal  =   False
+      LockLeft        =   True
+      LockRight       =   False
+      LockTop         =   True
+      LockVertical    =   False
+      PanelIndex      =   0
+      Scope           =   0
+      TabIndex        =   1
+      TabStop         =   True
+      Tooltip         =   ""
+      Top             =   112
+      Visible         =   True
+      Width           =   282
+      _mPanelIndex    =   -1
+   End
+   Begin WebLabel lblStatus
+      Bold            =   False
       ControlID       =   ""
       Enabled         =   True
-      Height          =   34
-      Indeterminate   =   False
+      FontName        =   ""
+      FontSize        =   0.0
+      Height          =   79
       Index           =   -2147483648
-      Indicator       =   ""
-      Left            =   20
+      indicator       =   0
+      Italic          =   False
+      Left            =   28
       LockBottom      =   False
       LockedInPosition=   False
       LockHorizontal  =   False
@@ -70,76 +97,23 @@ Begin WebDialog WebDialogSentryOptions
       LockRight       =   True
       LockTop         =   True
       LockVertical    =   False
-      Scope           =   0
-      TabIndex        =   1
-      TabStop         =   True
-      Tooltip         =   "When True, the stack frame address is also sent to Sentry."
-      Top             =   66
-      Value           =   False
-      Visible         =   True
-      Width           =   560
-      _mPanelIndex    =   -1
-   End
-   Begin WebLabel lblBreadcrumbs
-      Bold            =   False
-      ControlID       =   ""
-      Enabled         =   True
-      FontName        =   ""
-      FontSize        =   0.0
-      Height          =   38
-      Index           =   -2147483648
-      Indicator       =   ""
-      Italic          =   False
-      Left            =   20
-      LockBottom      =   False
-      LockedInPosition=   False
-      LockHorizontal  =   False
-      LockLeft        =   True
-      LockRight       =   False
-      LockTop         =   True
-      LockVertical    =   False
-      Multiline       =   False
+      Multiline       =   True
+      PanelIndex      =   0
       Scope           =   0
       TabIndex        =   2
       TabStop         =   True
-      Text            =   "Maximum breadcrumbs: 100"
+      Text            =   "Untitled"
       TextAlignment   =   0
       TextColor       =   &c00000000
       Tooltip         =   ""
-      Top             =   108
+      Top             =   225
       Underline       =   False
-      Visible         =   True
-      Width           =   230
+      Visible         =   False
+      Width           =   462
       _mPanelIndex    =   -1
    End
-   Begin WebSlider sliderBreadcrumbs
-      ControlID       =   ""
-      Enabled         =   True
-      Height          =   20
-      Index           =   -2147483648
-      Indicator       =   ""
-      Left            =   292
-      LockBottom      =   False
-      LockedInPosition=   False
-      LockHorizontal  =   False
-      LockLeft        =   True
-      LockRight       =   False
-      LockTop         =   True
-      LockVertical    =   False
-      MaximumValue    =   10
-      MinimumValue    =   0
-      Scope           =   0
-      StepValue       =   1
-      TabIndex        =   3
-      TabStop         =   True
-      Tooltip         =   ""
-      Top             =   116
-      Value           =   1
-      Visible         =   True
-      Width           =   200
-      _mPanelIndex    =   -1
-   End
-   Begin WebLabel lblSample
+   Begin WebLink Link1
+      Appearance      =   0
       Bold            =   False
       ControlID       =   ""
       Enabled         =   True
@@ -149,7 +123,7 @@ Begin WebDialog WebDialogSentryOptions
       Index           =   -2147483648
       indicator       =   0
       Italic          =   False
-      Left            =   20
+      Left            =   28
       LockBottom      =   False
       LockedInPosition=   False
       LockHorizontal  =   False
@@ -158,27 +132,61 @@ Begin WebDialog WebDialogSentryOptions
       LockTop         =   True
       LockVertical    =   False
       Multiline       =   False
+      PanelIndex      =   0
+      Scope           =   0
+      TabIndex        =   3
+      TabStop         =   True
+      Target          =   1
+      Text            =   "Open Sentry"
+      TextAlignment   =   0
+      TextColor       =   &c0000FF00
+      Tooltip         =   ""
+      Top             =   312
+      Underline       =   False
+      URL             =   "https://sentry.io"
+      Visible         =   False
+      Width           =   133
+      _mPanelIndex    =   -1
+   End
+   Begin WebButton Button4
+      AllowAutoDisable=   False
+      Cancel          =   False
+      Caption         =   "⚙️"
+      ControlID       =   ""
+      Default         =   False
+      Enabled         =   True
+      Height          =   38
+      Index           =   -2147483648
+      Indicator       =   5
+      Left            =   430
+      LockBottom      =   False
+      LockedInPosition=   False
+      LockHorizontal  =   False
+      LockLeft        =   False
+      LockRight       =   True
+      LockTop         =   True
+      LockVertical    =   False
       PanelIndex      =   0
       Scope           =   0
       TabIndex        =   4
       TabStop         =   True
-      Text            =   "Sample Rate: 100%"
-      TextAlignment   =   0
-      TextColor       =   &c00000000
-      Tooltip         =   "A value lower than 100% will automatically drop some exceptions and session info."
-      Top             =   154
-      Underline       =   False
+      Tooltip         =   ""
+      Top             =   20
       Visible         =   True
-      Width           =   230
+      Width           =   60
       _mPanelIndex    =   -1
    End
-   Begin WebSlider sliderSample
+   Begin WebButton Button5
+      AllowAutoDisable=   False
+      Cancel          =   False
+      Caption         =   "Verify Sentry Integration"
       ControlID       =   ""
+      Default         =   False
       Enabled         =   True
-      Height          =   20
+      Height          =   38
       Index           =   -2147483648
-      indicator       =   0
-      Left            =   292
+      Indicator       =   1
+      Left            =   20
       LockBottom      =   False
       LockedInPosition=   False
       LockHorizontal  =   False
@@ -186,31 +194,27 @@ Begin WebDialog WebDialogSentryOptions
       LockRight       =   False
       LockTop         =   True
       LockVertical    =   False
-      MaximumValue    =   100
-      MinimumValue    =   0
       PanelIndex      =   0
       Scope           =   0
-      StepValue       =   10
       TabIndex        =   5
       TabStop         =   True
       Tooltip         =   ""
-      Top             =   164
-      Value           =   100
+      Top             =   20
       Visible         =   True
-      Width           =   200
+      Width           =   282
       _mPanelIndex    =   -1
    End
-   Begin WebButton Button1
+   Begin WebButton btFeedback
       AllowAutoDisable=   False
       Cancel          =   False
-      Caption         =   "Close"
+      Caption         =   "Ask for user feedback"
       ControlID       =   ""
-      Default         =   True
-      Enabled         =   True
+      Default         =   False
+      Enabled         =   False
       Height          =   38
       Index           =   -2147483648
-      Indicator       =   1
-      Left            =   480
+      Indicator       =   5
+      Left            =   20
       LockBottom      =   False
       LockedInPosition=   False
       LockHorizontal  =   False
@@ -222,67 +226,104 @@ Begin WebDialog WebDialogSentryOptions
       TabIndex        =   6
       TabStop         =   True
       Tooltip         =   ""
-      Top             =   342
+      Top             =   158
       Visible         =   True
-      Width           =   100
+      Width           =   282
       _mPanelIndex    =   -1
    End
 End
-#tag EndWebPage
+#tag EndWebContainerControl
 
 #tag WindowCode
-	#tag Event
-		Sub Opening()
-		  sliderBreadcrumbs.Value = app.sentry.Options.max_breadcrumbs/50
-		  
-		  sliderSample.Value = app.sentry.Options.sample_rate * 100
-		  
-		  CheckBox1.Value = app.sentry.Options.include_StackFrame_address
-		  
-		  
-		  lblBreadcrumbs.Text = "Maximum breadcrumbs: " + app.sentry.Options.max_breadcrumbs.ToString
-		  lblSample.Text = "Sample rate: " + sliderSample.Value.ToString + "%"
-		End Sub
-	#tag EndEvent
-
-
 #tag EndWindowCode
 
-#tag Events Checkbox1
-	#tag Event
-		Sub ValueChanged()
-		  app.sentry.Options.include_StackFrame_address = me.Value
-		End Sub
-	#tag EndEvent
-#tag EndEvents
-#tag Events sliderBreadcrumbs
-	#tag Event
-		Sub ValueChanged()
-		  
-		  Dim value As Integer = me.Value * 50
-		  
-		  lblBreadcrumbs.Text = "Maximum breadcrumbs: " + value.ToString
-		  
-		  app.sentry.Options.max_breadcrumbs = value
-		End Sub
-	#tag EndEvent
-#tag EndEvents
-#tag Events sliderSample
-	#tag Event
-		Sub ValueChanged()
-		  
-		  Dim value As Integer = me.Value
-		  
-		  lblSample.Text = "Sample rate: " + value.ToString + "%"
-		  
-		  app.sentry.Options.sample_rate = value/100.0
-		End Sub
-	#tag EndEvent
-#tag EndEvents
 #tag Events Button1
 	#tag Event
 		Sub Pressed()
-		  self.Close
+		  //Add a breadcrumb
+		  Session.AddBreadcrumb("ui.click", CurrentMethodName)
+		  
+		  Dim dic As new Dictionary
+		  
+		  try
+		    
+		    
+		    Dim value As String = dic.Value("foo")
+		    
+		  Catch err
+		    //Catch the exception and send to Sentry
+		    
+		    Dim optionalMessage As String = "Testing out Sentry"
+		    
+		    app.sentry.SubmitException(err, CurrentMethodName, optionalMessage, Xojo_Sentry.errorLevel.warning, Session)
+		    
+		    
+		    
+		  end try
+		  
+		  
+		  
+		  
+		  lblStatus.Text = "You have created your first Exception." + EndOfLine + "Now click the link to open Sentry."
+		  lblStatus.Visible = True
+		  Link1.Visible = True
+		  
+		  btFeedback.Enabled = True
+		End Sub
+	#tag EndEvent
+#tag EndEvents
+#tag Events Button2
+	#tag Event
+		Sub Pressed()
+		  Session.AddBreadcrumb("ui.click", CurrentMethodName)
+		  
+		  
+		  
+		  lblStatus.Text = "You have created your first Exception." + EndOfLine + "Now click the link to open Sentry."
+		  lblStatus.Visible = True
+		  Link1.Visible = True
+		  
+		  Dim dic As Dictionary
+		  
+		  
+		  //This will produce a NilObjectException
+		  Dim value As String = dic.Value("foo")
+		  
+		  
+		  //This exception will be handled by App.UnhandledException event
+		  
+		  btFeedback.Enabled = True
+		End Sub
+	#tag EndEvent
+#tag EndEvents
+#tag Events Button4
+	#tag Event
+		Sub Pressed()
+		  
+		  Dim dlg As new WebDialogSentryOptions
+		  
+		  dlg.Show
+		End Sub
+	#tag EndEvent
+#tag EndEvents
+#tag Events Button5
+	#tag Event
+		Sub Pressed()
+		  //Add a breadcrumb
+		  Session.AddBreadcrumb("ui.click", CurrentMethodName)
+		  
+		  
+		  app.sentry.SendTestException()
+		End Sub
+	#tag EndEvent
+#tag EndEvents
+#tag Events btFeedback
+	#tag Event
+		Sub Pressed()
+		  
+		  Dim dlg As new WebDialogSentryUserFeedback(app.sentry.lastUUID)
+		  
+		  dlg.Show
 		End Sub
 	#tag EndEvent
 #tag EndEvents
@@ -296,10 +337,10 @@ End
 		EditorType=""
 	#tag EndViewProperty
 	#tag ViewProperty
-		Name="Index"
+		Name="ControlCount"
 		Visible=false
-		Group="ID"
-		InitialValue="-2147483648"
+		Group="Behavior"
+		InitialValue=""
 		Type="Integer"
 		EditorType=""
 	#tag EndViewProperty
@@ -352,87 +393,59 @@ End
 		EditorType=""
 	#tag EndViewProperty
 	#tag ViewProperty
-		Name="Height"
-		Visible=true
-		Group="Behavior"
-		InitialValue="400"
-		Type="Integer"
-		EditorType=""
-	#tag EndViewProperty
-	#tag ViewProperty
-		Name="LayoutType"
-		Visible=true
-		Group="Behavior"
-		InitialValue="LayoutTypes.Fixed"
-		Type="LayoutTypes"
-		EditorType="Enum"
-		#tag EnumValues
-			"0 - Fixed"
-			"1 - Flex"
-		#tag EndEnumValues
-	#tag EndViewProperty
-	#tag ViewProperty
 		Name="LockBottom"
-		Visible=false
+		Visible=true
 		Group="Behavior"
-		InitialValue=""
+		InitialValue="False"
 		Type="Boolean"
 		EditorType=""
 	#tag EndViewProperty
 	#tag ViewProperty
 		Name="LockHorizontal"
-		Visible=false
+		Visible=true
 		Group="Behavior"
-		InitialValue=""
+		InitialValue="False"
 		Type="Boolean"
 		EditorType=""
 	#tag EndViewProperty
 	#tag ViewProperty
 		Name="LockLeft"
-		Visible=false
+		Visible=true
 		Group="Behavior"
-		InitialValue=""
+		InitialValue="True"
 		Type="Boolean"
 		EditorType=""
 	#tag EndViewProperty
 	#tag ViewProperty
 		Name="LockRight"
-		Visible=false
+		Visible=true
 		Group="Behavior"
-		InitialValue=""
+		InitialValue="False"
 		Type="Boolean"
 		EditorType=""
 	#tag EndViewProperty
 	#tag ViewProperty
 		Name="LockTop"
-		Visible=false
+		Visible=true
 		Group="Behavior"
-		InitialValue=""
+		InitialValue="True"
 		Type="Boolean"
 		EditorType=""
 	#tag EndViewProperty
 	#tag ViewProperty
 		Name="LockVertical"
-		Visible=false
+		Visible=true
 		Group="Behavior"
-		InitialValue=""
+		InitialValue="False"
 		Type="Boolean"
 		EditorType=""
 	#tag EndViewProperty
 	#tag ViewProperty
 		Name="Visible"
-		Visible=false
+		Visible=true
 		Group="Behavior"
 		InitialValue=""
 		Type="Boolean"
-		EditorType=""
-	#tag EndViewProperty
-	#tag ViewProperty
-		Name="Width"
-		Visible=true
-		Group="Behavior"
-		InitialValue="600"
-		Type="Integer"
 		EditorType=""
 	#tag EndViewProperty
 	#tag ViewProperty
@@ -458,6 +471,20 @@ End
 		InitialValue=""
 		Type="String"
 		EditorType="MultiLineEditor"
+	#tag EndViewProperty
+	#tag ViewProperty
+		Name="ScrollDirection"
+		Visible=true
+		Group="Behavior"
+		InitialValue="ScrollDirections.None"
+		Type="WebContainer.ScrollDirections"
+		EditorType="Enum"
+		#tag EnumValues
+			"0 - None"
+			"1 - Horizontal"
+			"2 - Vertical"
+			"3 - Both"
+		#tag EndEnumValues
 	#tag EndViewProperty
 	#tag ViewProperty
 		Name="TabIndex"
@@ -488,9 +515,21 @@ End
 		#tag EndEnumValues
 	#tag EndViewProperty
 	#tag ViewProperty
+		Name="LayoutType"
+		Visible=true
+		Group="View"
+		InitialValue="LayoutTypes.Fixed"
+		Type="LayoutTypes"
+		EditorType="Enum"
+		#tag EnumValues
+			"0 - Fixed"
+			"1 - Flex"
+		#tag EndEnumValues
+	#tag EndViewProperty
+	#tag ViewProperty
 		Name="LayoutDirection"
 		Visible=true
-		Group="WebView"
+		Group="View"
 		InitialValue="LayoutDirections.LeftToRight"
 		Type="LayoutDirections"
 		EditorType="Enum"
@@ -500,5 +539,21 @@ End
 			"2 - TopToBottom"
 			"3 - BottomToTop"
 		#tag EndEnumValues
+	#tag EndViewProperty
+	#tag ViewProperty
+		Name="Width"
+		Visible=false
+		Group=""
+		InitialValue="250"
+		Type="Integer"
+		EditorType=""
+	#tag EndViewProperty
+	#tag ViewProperty
+		Name="Height"
+		Visible=false
+		Group=""
+		InitialValue="250"
+		Type="Integer"
+		EditorType=""
 	#tag EndViewProperty
 #tag EndViewBehavior
