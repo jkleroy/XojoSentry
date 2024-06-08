@@ -13,7 +13,7 @@ Language: Xojo 2023r3 Desktop, Web & iOS Project
 
 Author: Jeremie Leroy
 
-Version 0.4
+Version 0.6
 
 Based on the original code from Mike Cotrone https://github.com/mikecotrone/XojoSentryV2
 
