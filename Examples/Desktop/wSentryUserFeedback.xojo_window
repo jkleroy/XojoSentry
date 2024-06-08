@@ -420,7 +420,7 @@ End
 		  if self.attachment <> nil then
 		    
 		    #if not DebugBuild
-		      #Pragma Error "Make sure to correctly define the content type"
+		      '#Pragma Error "Make sure to correctly define the content type"
 		    #endif
 		    
 		    contentType = "text/plain"

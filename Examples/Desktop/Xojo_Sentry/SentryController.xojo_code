@@ -1480,6 +1480,53 @@ Class SentryController
 		End Function
 	#tag EndMethod
 
+	#tag Method, Flags = &h0, CompatibilityFlags = (TargetConsole and (Target32Bit or Target64Bit)) or  (TargetDesktop and (Target32Bit or Target64Bit)) or  (TargetIOS and (Target64Bit)) or  (TargetAndroid and (Target64Bit)), Description = 52657475726E7320746865206C6173742061646465642062726561646372756D62206F72206E696C206966206E6F2062726561646372756D622061646465642E
+		Function LastBreadcrumb(sessionID As String = "") As Dictionary
+		  // Returns the last added breadcrumb or nil if no breadcrumb added.
+		  // On Web, sessionID parameter is recommend
+		  // On other platforms it is ignored
+		  #if TargetWeb
+		    
+		    //Try getting the current session
+		    if sessionID.IsEmpty then
+		      if session is nil then Return 
+		      Dim aSession As WebSession = Session
+		      sessionID = aSession.Identifier
+		    end if
+		    
+		    Dim sessionCrumbs() As Dictionary
+		    if breadcrumbsWeb is nil then
+		      breadcrumbsWeb = new Dictionary
+		    end if
+		    
+		    if breadcrumbsWeb.HasKey(SessionID) then
+		      sessionCrumbs = breadcrumbsWeb.Value(SessionID)
+		    end if
+		    
+		    
+		    
+		    if sessionCrumbs.Count > 0 then
+		      
+		      return sessionCrumbs(sessionCrumbs.LastIndex)
+		      
+		      
+		    end if
+		    
+		  #else
+		    
+		    
+		    
+		    if breadcrumbs.Count > 0 then
+		      
+		      Return breadcrumbs(breadcrumbs.LastIndex)
+		      
+		      
+		    end if
+		    
+		  #endif
+		End Function
+	#tag EndMethod
+
 	#tag Method, Flags = &h21
 		Private Sub ParseDSN(dsn As String)
 		  
@@ -1618,6 +1665,52 @@ Class SentryController
 		  if tempExtra.HasKey(key) then
 		    tempExtra.Remove(key)
 		  end if
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h0, CompatibilityFlags = (TargetConsole and (Target32Bit or Target64Bit)) or  (TargetDesktop and (Target32Bit or Target64Bit)) or  (TargetIOS and (Target64Bit)) or  (TargetAndroid and (Target64Bit)), Description = 52656D6F76657320746865206C6173742061646465642062726561646372756D622E2053657373696F6E4944206973207265636F6D6D656E646564206F6E205765622E
+		Sub RemoveLastBreadcrumb(sessionID As String = "")
+		  // Removes the last added breadcrumb. SessionID is recommended on Web.
+		  // SessionID is ignored on other platforms
+		  #if TargetWeb
+		    
+		    //Try getting the current session
+		    if sessionID.IsEmpty then
+		      if session is nil then Return 
+		      Dim aSession As WebSession = Session
+		      sessionID = aSession.Identifier
+		    end if
+		    
+		    Dim sessionCrumbs() As Dictionary
+		    if breadcrumbsWeb is nil then
+		      breadcrumbsWeb = new Dictionary
+		    end if
+		    
+		    if breadcrumbsWeb.HasKey(SessionID) then
+		      sessionCrumbs = breadcrumbsWeb.Value(SessionID)
+		    end if
+		    
+		    
+		    
+		    if sessionCrumbs.Count > 0 then
+		      
+		      sessionCrumbs.ResizeTo(sessionCrumbs.LastIndex-1)
+		      
+		      
+		    end if
+		    
+		  #else
+		    #Pragma Unused sessionID
+		    
+		    if breadcrumbs.Count > 0 then
+		      
+		      breadcrumbs.ResizeTo(breadcrumbs.LastIndex-1)
+		      
+		      
+		    end if
+		    
+		    
+		  #endif
 		End Sub
 	#tag EndMethod
 
@@ -2400,15 +2493,31 @@ Class SentryController
 	#tag EndMethod
 
 	#tag Method, Flags = &h0, Description = 41207370616E20697320612074696D6564206170706C69636174696F6E206576656E74207468617420686173206120737461727420616E6420656E642074696D65
-		Function StartSpan(transaction As SentryTrace = nil, operation As String, description As String, Optional parent_span_id As String) As SentrySpan
-		  #if not TargetWeb
-		    if transaction is nil then
-		      transaction = currentTrace
+		Function StartSpan(parentTrace As SentryTrace = nil, operation As String, description As String, Optional parent_span_id As String) As SentrySpan
+		  //For a list of operations, see here: https://develop.sentry.dev/sdk/performance/span-operations/
+		  
+		  #if TargetWeb
+		    if parentTrace is nil and session <> nil then
+		      Dim sessionID As String = session.identifier
+		      
+		      if currentTraceWeb <> nil and currentTraceWeb.HasKey(sessionID) then
+		        parentTrace = currentTraceWeb.Value(sessionID)
+		      end if
+		    end if
+		    
+		    
+		    
+		  #else
+		    if parentTrace is nil then
+		      parentTrace = currentTrace
 		    end if
 		  #endif
 		  
-		  if transaction is nil then
-		    System.DebugLog CurrentMethodName + " " + "A call to StartTracing is required before starting a span"
+		  if parentTrace is nil then
+		    System.DebugLog CurrentMethodName + " " + "A call to StartTracing is required before starting a span."
+		    Return nil
+		  elseif parentTrace.stopped then
+		    System.DebugLog CurrentMethodName + " " + "The parentTrace has already been Finished. Can't StartSpan on a finished Trace."
 		    Return nil
 		  end if
 		  
@@ -2416,7 +2525,7 @@ Class SentryController
 		  
 		  Dim sp As new SentrySpan
 		  sp.start_timestamp = GetCurrentTimestamp()
-		  sp.parentTrace = transaction
+		  sp.parentTrace = parentTrace
 		  
 		  sp.span_id = GenerateUUID.ReplaceAll("-", "").Left(16)
 		  
@@ -2449,6 +2558,8 @@ Class SentryController
 
 	#tag Method, Flags = &h0
 		Function StartTracing(operation As String, description As String, level As Xojo_Sentry.errorLevel = Xojo_Sentry.errorLevel.info) As SentryTrace
+		  //For a list of operations, see here: https://develop.sentry.dev/sdk/performance/span-operations/
+		  
 		  Dim transaction As new SentryTrace
 		  transaction.start_timestamp = GetCurrentTimestamp()
 		  transaction.event_id = GenerateUUID
@@ -2461,8 +2572,23 @@ Class SentryController
 		  
 		  
 		  
-		  #if not TargetWeb
+		  #if TargetWeb
+		    Dim sessionID As String
+		    if session <> nil then
+		      sessionID = session.Identifier
+		    end if
+		    if not sessionID.IsEmpty then
+		      if currentTraceWeb is nil then
+		        currentTraceWeb = new Dictionary
+		      end if
+		      if currentTraceWeb.HasKey(sessionID) = False then
+		        currentTraceWeb.Value(sessionID) = transaction
+		      end if
+		    end if
+		    
+		  #else
 		    self.currentTrace = transaction
+		    
 		  #endif
 		  
 		  Return transaction
@@ -2501,25 +2627,50 @@ Class SentryController
 	#tag EndMethod
 
 	#tag Method, Flags = &h0, Description = 46696E69736865732074686520706173736564207472616E73616374696F6E2E2050617373206E696C20746F2066696E697368207468652053656E74727927732063757272656E74207472616E73616374696F6E
-		Sub StopTracing(transaction As SentryTrace = nil, message As String = "", Session As Variant = nil, level As Xojo_Sentry.errorLevel = Xojo_Sentry.errorLevel.info)
+		Sub StopTracing(trace As SentryTrace = nil, message As String = "", Session As Variant = nil, level As Xojo_Sentry.errorLevel = Xojo_Sentry.errorLevel.info)
+		  Dim sessionIdentifier As String
+		  #if TargetWeb
+		    if Session <> nil then
+		      Dim aSession As WebSession = Session
+		      sessionIdentifier = aSession.Identifier
+		    end if
+		  #endif
+		  
 		  
 		  #if TargetWeb
-		    if transaction is nil then Return
+		    
+		    if not sessionIdentifier.IsEmpty then
+		      
+		      if currentTraceWeb <> nil and currentTraceWeb.HasKey(sessionIdentifier) then
+		        
+		        if trace is nil then
+		          trace = currentTraceWeb.Value(sessionIdentifier)
+		          currentTraceWeb.Remove(sessionIdentifier)
+		        Elseif trace = currentTraceWeb.Value(sessionIdentifier) then
+		          currentTraceWeb.Remove(sessionIdentifier)
+		        end if
+		      end if
+		      
+		    end if
+		    
+		    
+		    
+		    if trace is nil then Return
 		  #else
-		    if transaction is nil and currentTrace is nil then Return
+		    if trace is nil and currentTrace is nil then Return
 		    
 		    
-		    if transaction is nil then
-		      transaction = currentTrace
+		    if trace is nil then
+		      trace = currentTrace
 		      self.currentTrace = nil
-		    elseif transaction = self.currentTrace then
+		    elseif trace = self.currentTrace then
 		      self.currentTrace = nil
 		    end if
 		    
 		  #endif
 		  
-		  if transaction.timestamp = 0.0 then
-		    transaction.timestamp = GetCurrentTimestamp()
+		  if trace.timestamp = 0.0 then
+		    trace.timestamp = GetCurrentTimestamp()
 		  end if
 		  
 		  
@@ -2541,22 +2692,15 @@ Class SentryController
 		  end if
 		  
 		  
-		  Dim sessionIdentifier As String
-		  #if TargetWeb
-		    if Session <> nil then
-		      Dim aSession As WebSession = Session
-		      sessionIdentifier = aSession.Identifier
-		    end if
-		  #endif
 		  
 		  
 		  ////////////////////
 		  // Tags
 		  ////////////////////
-		  transaction.tags = GenerateTags("", sessionIdentifier)
+		  trace.tags = GenerateTags("", sessionIdentifier)
 		  
 		  
-		  transaction.level = level
+		  trace.level = level
 		  
 		  
 		  
@@ -2589,9 +2733,9 @@ Class SentryController
 		  
 		  js.Value("type") = "transaction"
 		  
-		  js.Value("event_id") = transaction.event_id
+		  js.Value("event_id") = trace.event_id
 		  js.Value("project") = self.ProjectID
-		  js.Value("transaction") = transaction.description
+		  js.Value("transaction") = trace.description
 		  'if transaction.description.IsEmpty = False then
 		  'js.Value("title") = transaction.description
 		  'end if
@@ -2600,8 +2744,8 @@ Class SentryController
 		    js.Value("message") = message
 		  end if
 		  
-		  js.Value("start_timestamp") = transaction.start_timestamp
-		  js.Value("timestamp") = transaction.timestamp
+		  js.Value("start_timestamp") = trace.start_timestamp
+		  js.Value("timestamp") = trace.timestamp
 		  
 		  ////////////////////
 		  // Contexts
@@ -2611,7 +2755,7 @@ Class SentryController
 		  //add os version info
 		  contexts.Value("os") = GenerateOSInfo()
 		  
-		  contexts.Value("trace") = transaction.GenerateJS
+		  contexts.Value("trace") = trace.GenerateJS
 		  
 		  js.Value("contexts") = contexts
 		  
@@ -3074,6 +3218,10 @@ Class SentryController
 	#tag EndProperty
 
 	#tag Property, Flags = &h21
+		Private currentTraceWeb As Dictionary
+	#tag EndProperty
+
+	#tag Property, Flags = &h21
 		Private dicReportingFilter As Dictionary
 	#tag EndProperty
 
@@ -3212,6 +3360,14 @@ Class SentryController
 			InitialValue=""
 			Type="String"
 			EditorType="MultiLineEditor"
+		#tag EndViewProperty
+		#tag ViewProperty
+			Name="ProjectID"
+			Visible=false
+			Group="Behavior"
+			InitialValue=""
+			Type="String"
+			EditorType=""
 		#tag EndViewProperty
 	#tag EndViewBehavior
 End Class
