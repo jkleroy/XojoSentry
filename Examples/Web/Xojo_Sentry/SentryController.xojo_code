@@ -2938,7 +2938,6 @@ Class SentryController
 		    End Select
 		    
 		    Return VersionNumber
-		    End Select
 		    
 		    Return ""
 		    
