@@ -45,7 +45,7 @@ Begin DesktopWindow Window1
       Tooltip         =   ""
       Top             =   0
       Transparent     =   False
-      Value           =   2
+      Value           =   3
       Visible         =   True
       Width           =   600
       Begin DesktopButton btAttachment
@@ -468,6 +468,7 @@ Begin DesktopWindow Window1
          Width           =   250
       End
       Begin DesktopProgressBar ProgressBar1
+         Active          =   False
          AllowAutoDeactivate=   True
          AllowTabStop    =   True
          Enabled         =   True
@@ -482,6 +483,7 @@ Begin DesktopWindow Window1
          LockRight       =   True
          LockTop         =   True
          MaximumValue    =   100
+         PanelIndex      =   0
          Scope           =   0
          TabIndex        =   2
          TabPanelIndex   =   3
@@ -491,6 +493,10 @@ Begin DesktopWindow Window1
          Value           =   0.0
          Visible         =   False
          Width           =   359
+         _mIndex         =   0
+         _mInitialParent =   ""
+         _mName          =   ""
+         _mPanelIndex    =   0
       End
    End
    Begin Toolbar1 myToolbar
@@ -502,12 +508,15 @@ Begin DesktopWindow Window1
       Visible         =   True
    End
    Begin Thread Thread1
+      DebugIdentifier =   ""
       Index           =   -2147483648
       LockedInPosition=   False
       Priority        =   5
       Scope           =   0
       StackSize       =   0
       TabPanelIndex   =   0
+      ThreadID        =   0
+      ThreadState     =   0
    End
 End
 #tag EndDesktopWindow

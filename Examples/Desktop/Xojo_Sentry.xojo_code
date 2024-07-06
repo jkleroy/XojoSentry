@@ -5,6 +5,13 @@ Protected Module Xojo_Sentry
 	#tag EndDelegateDeclaration
 
 
+	#tag Note, Name = History
+		# Version 0.7
+		
+		New
+		SentryOptions.persistant_breadcrumbs defaults to 10
+	#tag EndNote
+
 	#tag Note, Name = Using Sentry for a Desktop Project
 		
 		# To use Sentry in your own Web project
@@ -85,7 +92,7 @@ Protected Module Xojo_Sentry
 	#tag Constant, Name = kVerbose, Type = Boolean, Dynamic = False, Default = \"False", Scope = Private, Description = 53657420746F205472756520666F7220646562756767696E67206D65737361676573202844656275674275696C64206F6E6C7929
 	#tag EndConstant
 
-	#tag Constant, Name = kVersion, Type = String, Dynamic = False, Default = \"0.6", Scope = Private
+	#tag Constant, Name = kVersion, Type = String, Dynamic = False, Default = \"0.7", Scope = Private
 	#tag EndConstant
 
 
