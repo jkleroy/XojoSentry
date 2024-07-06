@@ -156,7 +156,7 @@ Begin WebDialog WebDialogSentryUserFeedback
       Height          =   38
       Hint            =   "Your email address"
       Index           =   -2147483648
-      indicator       =   0
+      Indicator       =   0
       Left            =   20
       LockBottom      =   False
       LockedInPosition=   False
@@ -166,7 +166,7 @@ Begin WebDialog WebDialogSentryUserFeedback
       LockTop         =   True
       LockVertical    =   False
       MaximumCharactersAllowed=   0
-      PanelIndex      =   0
+      PanelIndex      =   "0"
       ReadOnly        =   False
       Scope           =   0
       TabIndex        =   9
@@ -228,7 +228,7 @@ Begin WebDialog WebDialogSentryUserFeedback
       LockRight       =   True
       LockTop         =   False
       LockVertical    =   False
-      PanelIndex      =   0
+      PanelIndex      =   "0"
       Scope           =   0
       TabIndex        =   11
       TabStop         =   True
@@ -532,5 +532,13 @@ End
 			"2 - TopToBottom"
 			"3 - BottomToTop"
 		#tag EndEnumValues
+	#tag EndViewProperty
+	#tag ViewProperty
+		Name="sentry_uuid"
+		Visible=false
+		Group="Behavior"
+		InitialValue=""
+		Type="String"
+		EditorType="MultiLineEditor"
 	#tag EndViewProperty
 #tag EndViewBehavior

@@ -790,13 +790,13 @@ Class SentryController
 		  
 		  //new v0.7
 		  #if TargetIOS
-		    if Options <> nil and Options.app_name.IsEmpty then
+		    if Options <> nil and not Options.app_name.IsEmpty then
 		      j.Value("release") = Options.app_name + "@" + getAppVersion
 		    Else
 		      j.Value("release") = getAppVersion
 		    end if
 		  #Else
-		    if Options <> nil and Options.app_name.IsEmpty then
+		    if Options <> nil and not Options.app_name.IsEmpty then
 		      j.Value("release") = Options.app_name + "@" + getAppVersion
 		    Else
 		      j.Value("release") = app.ExecutableFile.name + "@" + getAppVersion
@@ -2158,13 +2158,13 @@ Class SentryController
 		  
 		  //new v0.7
 		  #if TargetIOS
-		    if Options <> nil and Options.app_name.IsEmpty then
+		    if Options <> nil and not Options.app_name.IsEmpty then
 		      attrs.Value("release") = Options.app_name + "@" + getAppVersion
 		    Else
 		      attrs.Value("release") = getAppVersion
 		    end if
 		  #Else
-		    if Options <> nil and Options.app_name.IsEmpty then
+		    if Options <> nil and not Options.app_name.IsEmpty then
 		      attrs.Value("release") = Options.app_name + "@" + getAppVersion
 		    Else
 		      attrs.Value("release") = app.ExecutableFile.name + "@" + getAppVersion
@@ -3081,7 +3081,7 @@ Class SentryController
 	#tag EndMethod
 
 	#tag Method, Flags = &h21, CompatibilityFlags = (TargetWeb and (Target32Bit or Target64Bit))
-		Private Sub web_GetBrowserInfo(vSession As Variant, Type As String)
+		Private Function web_GetBrowserInfo(vSession As Variant, Type As String) As String
 		  #if TargetWeb
 		    Dim Session As WebSession = vSession
 		    
@@ -3237,9 +3237,9 @@ Class SentryController
 		        
 		      end if
 		      
-		    End Select
-		    
-		    Return VersionNumber
+		      
+		      
+		      Return VersionNumber
 		    End Select
 		    
 		    Return ""
@@ -3354,7 +3354,7 @@ Class SentryController
 		    
 		    
 		  #endif
-		End Sub
+		End Function
 	#tag EndMethod
 
 

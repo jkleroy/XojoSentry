@@ -1,7 +1,7 @@
 #tag Class
 Class SentryController
 	#tag Method, Flags = &h0, CompatibilityFlags = (TargetConsole and (Target32Bit or Target64Bit)) or  (TargetDesktop and (Target32Bit or Target64Bit)) or  (TargetIOS and (Target64Bit)) or  (TargetAndroid and (Target64Bit)), Description = 4164647320612062726561646372756D62207769746820616E206F7074696F6E616C206D6573736167652E
-		Sub AddBreadcrumb(category As String, message As String = "")
+		Sub AddBreadcrumb(category as String, message as String = "", level as Xojo_Sentry.errorLevel = Xojo_Sentry.errorLevel.info)
 		  #if False
 		    {
 		    "type": "navigation",
@@ -23,24 +23,36 @@ Class SentryController
 		  //Grab the current time in GMT
 		  Dim GMTZone As New TimeZone("GMT")
 		  now = new DateTime(DateTime.now.SecondsFrom1970, GMTZone)
-		  dic.Value("timestamp") = now.SQLDateTime.Replace(" ", "T") + "Z"
+		  dic.Value("timestamp") = now.SecondsFrom1970
 		  
-		  
-		  
+		  //Message
 		  if message.isempty = False then
 		    dic.Value("message") = Message
 		  end if
 		  
+		  //ErrorLevel
+		  Select case level
+		  Case errorLevel.fatal
+		    dic.Value("level") = "fatal"
+		  Case errorLevel.error
+		    dic.Value("level") = "error"
+		  case errorLevel.warning
+		    dic.Value("level") = "warning"
+		  case errorLevel.info
+		    dic.Value("level") = "info"
+		  case errorLevel.debug
+		    dic.Value("level") = "debug"
+		  End Select
+		  
+		  
 		  breadcrumbs.Add dic
 		  
-		  if self.Options <> nil and breadcrumbs.Count > Options.max_breadcrumbs then
-		    breadcrumbs.RemoveAt(0)
-		  end if
+		  CleanupBreadcrumbs(breadcrumbs)
 		End Sub
 	#tag EndMethod
 
 	#tag Method, Flags = &h0, CompatibilityFlags = (TargetConsole and (Target32Bit or Target64Bit)) or  (TargetDesktop and (Target32Bit or Target64Bit)) or  (TargetIOS and (Target64Bit)) or  (TargetAndroid and (Target64Bit)), Description = 4164647320612062726561646372756D62207769746820747970652C2063617465676F727920616E64206D65737361676520706172616D65746572732E
-		Sub AddBreadcrumb(type As String, category As String, message As String)
+		Sub AddBreadcrumb(type as String, category as String, message as String, level as Xojo_Sentry.errorLevel = Xojo_Sentry.errorLevel.info)
 		  #if False
 		    {
 		    "type": "navigation",
@@ -62,7 +74,7 @@ Class SentryController
 		  //Grab the current time in GMT
 		  Dim GMTZone As New TimeZone("GMT")
 		  now = new DateTime(DateTime.now.SecondsFrom1970, GMTZone)
-		  dic.Value("timestamp") = now.SQLDateTime.Replace(" ", "T") + "Z"
+		  dic.Value("timestamp") = now.SecondsFrom1970
 		  
 		  
 		  
@@ -70,11 +82,25 @@ Class SentryController
 		    dic.Value("message") = Message
 		  end if
 		  
+		  
+		  //ErrorLevel
+		  Select case level
+		  Case errorLevel.fatal
+		    dic.Value("level") = "fatal"
+		  Case errorLevel.error
+		    dic.Value("level") = "error"
+		  case errorLevel.warning
+		    dic.Value("level") = "warning"
+		  case errorLevel.info
+		    dic.Value("level") = "info"
+		  case errorLevel.debug
+		    dic.Value("level") = "debug"
+		  End Select
+		  
+		  
 		  breadcrumbs.Add dic
 		  
-		  if self.Options <> nil and breadcrumbs.Count > Options.max_breadcrumbs and breadcrumbs.Count > 2 then
-		    breadcrumbs.RemoveAt(1)
-		  end if
+		  CleanupBreadcrumbs(breadcrumbs)
 		End Sub
 	#tag EndMethod
 
@@ -101,7 +127,7 @@ Class SentryController
 		  //Grab the current time in GMT
 		  Dim GMTZone As New TimeZone("GMT")
 		  now = new DateTime(DateTime.now.SecondsFrom1970, GMTZone)
-		  dic.Value("timestamp") = now.SQLDateTime.Replace(" ", "T") + "Z"
+		  dic.Value("timestamp") = now.SecondsFrom1970
 		  
 		  Dim data As new Dictionary
 		  data.Value("from") = fromScreen
@@ -115,9 +141,7 @@ Class SentryController
 		  
 		  breadcrumbs.Add dic
 		  
-		  if breadcrumbs.Count > Options.max_breadcrumbs then
-		    breadcrumbs.RemoveAt(0)
-		  end if
+		  CleanupBreadcrumbs(breadcrumbs)
 		End Sub
 	#tag EndMethod
 
@@ -282,7 +306,7 @@ Class SentryController
 	#tag EndMethod
 
 	#tag Method, Flags = &h0, CompatibilityFlags = (TargetWeb and (Target32Bit or Target64Bit))
-		Sub AddWebBreadcrumb(SessionID As String, category As String, message As String = "")
+		Sub AddWebBreadcrumb(SessionID as String, category as String, message as String = "", level as Xojo_Sentry.errorLevel = Xojo_Sentry.errorLevel.info)
 		  #if False
 		    {
 		    "type": "navigation",
@@ -316,6 +340,20 @@ Class SentryController
 		    dic.Value("message") = Message
 		  end if
 		  
+		  //ErrorLevel
+		  Select case level
+		  Case errorLevel.fatal
+		    dic.Value("level") = "fatal"
+		  Case errorLevel.error
+		    dic.Value("level") = "error"
+		  case errorLevel.warning
+		    dic.Value("level") = "warning"
+		  case errorLevel.info
+		    dic.Value("level") = "info"
+		  case errorLevel.debug
+		    dic.Value("level") = "debug"
+		  End Select
+		  
 		  Dim sessionCrumbs() As Dictionary
 		  if breadcrumbsWeb is nil then
 		    breadcrumbsWeb = new Dictionary
@@ -328,9 +366,7 @@ Class SentryController
 		  sessionCrumbs.Add dic
 		  
 		  
-		  if self.Options <> nil and sessionCrumbs.Count > Options.max_breadcrumbs then
-		    sessionCrumbs.RemoveAt(0)
-		  end if
+		  CleanupBreadcrumbs(sessionCrumbs)
 		  
 		  breadcrumbsWeb.Value(SessionID) = sessionCrumbs
 		End Sub
@@ -383,9 +419,7 @@ Class SentryController
 		  sessionCrumbs.Add dic
 		  
 		  
-		  if self.Options <> nil and sessionCrumbs.Count > Options.max_breadcrumbs then
-		    sessionCrumbs.RemoveAt(0)
-		  end if
+		  CleanupBreadcrumbs(sessionCrumbs)
 		  
 		  breadcrumbsWeb.Value(SessionID) = sessionCrumbs
 		End Sub
@@ -432,6 +466,55 @@ Class SentryController
 		    
 		  end if
 		End Function
+	#tag EndMethod
+
+	#tag Method, Flags = &h1, Description = 436C65616E732D7570207468652062726561646372756D6273206966206E6563657373617279
+		Protected Sub CleanupBreadcrumbs(breadcrumbs() As Dictionary)
+		  //new v0.7
+		  
+		  Static redactedCount as Integer = 0
+		  
+		  try
+		    if self.Options <> nil and breadcrumbs.Count > Options.max_breadcrumbs then
+		      
+		      if Options.persistant_breadcrumbs <= 0 then
+		        //Remove the first breadcrumb
+		        breadcrumbs.RemoveAt(0)
+		        
+		      Elseif breadcrumbs.Count > Options.persistant_breadcrumbs then
+		        
+		        if Options.persistant_breadcrumbs > Options.max_breadcrumbs+1 then
+		          break
+		          // Options.persistant_breadcrumbs must be smaller than Options.max_breadcrumbs
+		          
+		          breadcrumbs.RemoveAt(0)
+		          Return
+		        end if
+		        
+		        redactedCount = redactedCount + 1
+		        
+		        Dim crumb As Dictionary = breadcrumbs(Options.persistant_breadcrumbs)
+		        
+		        crumb.Value("category") = "info"
+		        crumb.Value("type") = "default"
+		        crumb.Value("message") = "<redacted x " + redactedCount.ToString + ">"
+		        crumb.Value("level") = "info"
+		        
+		        if crumb.HasKey("data") then
+		          crumb.Remove("data")
+		        end if
+		        
+		        
+		        while breadcrumbs.Count > Options.max_breadcrumbs
+		          breadcrumbs.RemoveAt(Options.persistant_breadcrumbs+1)
+		        wend
+		      end if
+		      
+		    end if
+		  Catch
+		    
+		  end try
+		End Sub
 	#tag EndMethod
 
 	#tag Method, Flags = &h1
@@ -667,7 +750,7 @@ Class SentryController
 		  
 		  //Required
 		  j.Value("event_id") = GenerateUUID
-		  j.Value("timestamp") = now.SQLDateTime.Replace(" ", "T") + "Z"
+		  j.Value("timestamp") = now.SecondsFrom1970
 		  j.Value("platform") = "other"
 		  
 		  //ErrorLevel
@@ -704,7 +787,24 @@ Class SentryController
 		  end if
 		  
 		  'j.Value("stacktrace") = stacktrace
-		  j.Value("release") = getAppVersion
+		  
+		  //new v0.7
+		  #if TargetIOS
+		    if Options <> nil and not Options.app_name.IsEmpty then
+		      j.Value("release") = Options.app_name + "@" + getAppVersion
+		    Else
+		      j.Value("release") = getAppVersion
+		    end if
+		  #Else
+		    if Options <> nil and not Options.app_name.IsEmpty then
+		      j.Value("release") = Options.app_name + "@" + getAppVersion
+		    Else
+		      j.Value("release") = app.ExecutableFile.name + "@" + getAppVersion
+		    end if
+		  #endif
+		  
+		  
+		  
 		  'if currentFunction.isEmpty = False then
 		  'j.Value("culprit") = currentFunction
 		  'end if
@@ -832,6 +932,29 @@ Class SentryController
 		    
 		    jApp.Value("app_version") = getAppVersion
 		    
+		    //new v0.7
+		    jApp.Value("app_memory") = Runtime.MemoryUsed
+		    jApp.Value("object_count") = Runtime.ObjectCount
+		    
+		    //new v0.7
+		    #if TargetDesktop or TargetWeb
+		      #if TargetARM
+		        #if Target32Bit
+		          jApp.Value("app_arch") = "ARM 32-bit"
+		        #elseif Target64Bit
+		          jApp.Value("app_arch") = "ARM 64-bit"
+		        #endif 
+		      #elseif TargetX86
+		        #if Target32Bit
+		          jApp.Value("app_arch") = "x86 32-bit"
+		        #elseif Target64Bit
+		          jApp.Value("app_arch") = "x86 64-bit"
+		        #endif
+		      #endif
+		    #endif
+		    
+		    
+		    
 		    contexts.Value("app") = jApp
 		  End If
 		  
@@ -923,6 +1046,7 @@ Class SentryController
 		        end if
 		        
 		        jBrowser.Value("UserAgent") = aSession.Header("User-Agent")
+		        
 		        jBrowser.Value("ClientWidth") = aSession.ClientWidth
 		        jBrowser.Value("ClientHeight") = aSession.ClientHeight
 		        jBrowser.Value("platform") = aSession.Platform
@@ -1236,8 +1360,8 @@ Class SentryController
 		End Function
 	#tag EndMethod
 
-	#tag Method, Flags = &h21
-		Private Function GenerateUUID() As String
+	#tag Method, Flags = &h1
+		Protected Function GenerateUUID() As String
 		  
 		  
 		  
@@ -1308,8 +1432,8 @@ Class SentryController
 		End Function
 	#tag EndMethod
 
-	#tag Method, Flags = &h21
-		Private Function getAppVersion() As String
+	#tag Method, Flags = &h1
+		Protected Function getAppVersion() As String
 		  
 		  #if TargetIOS
 		    declare function NSClassFromString lib "Foundation" (clsName as CFStringRef) as ptr
@@ -1325,7 +1449,7 @@ Class SentryController
 		    
 		    Dim fullVersion As String
 		    fullVersion = app.MajorVersion.ToString + "." + app.MinorVersion.ToString + "." _
-		    + app.BugVersion.ToString + "." + app.NonReleaseVersion.ToString
+		    + app.BugVersion.ToString + "+" + app.NonReleaseVersion.ToString
 		    
 		    Return fullVersion
 		    
@@ -1341,6 +1465,15 @@ Class SentryController
 		  now = new DateTime(DateTime.now.SecondsFrom1970, GMTZone)
 		  
 		  Return now.SecondsFrom1970
+		End Function
+	#tag EndMethod
+
+	#tag Method, Flags = &h1
+		Protected Function GetEnvelopeHeader() As String
+		  return "Sentry sentry_version=7,sentry_client=Xojo-Sentry/"+kVersion+"," + _
+		  "sentry_timestamp=" + DateTime.now.SecondsFrom1970.ToString(locale.Raw, "######") + "," + _
+		  "sentry_key="+PublicKey '+ '"&" + _
+		  '"sentry_secret="+SecretKey
 		End Function
 	#tag EndMethod
 
@@ -1457,8 +1590,8 @@ Class SentryController
 		End Function
 	#tag EndMethod
 
-	#tag Method, Flags = &h21, CompatibilityFlags = (TargetIOS and (Target64Bit))
-		Private Function iOS_isTestflightXC() As Boolean
+	#tag Method, Flags = &h1, CompatibilityFlags = (TargetIOS and (Target64Bit))
+		Protected Function iOS_isTestflightXC() As Boolean
 		  #if TargetIOS
 		    Declare Function mainBundle Lib "Foundation" selector "mainBundle" (clsRef As ptr) As ptr
 		    Declare Function NSClassFromString Lib "Foundation" (name As CFStringRef) As Ptr
@@ -1473,6 +1606,41 @@ Class SentryController
 		      if receiptURLString.IndexOf("sandboxReceipt") > -1 then 
 		        Return True
 		      end if
+		    end if
+		    
+		  #endif
+		End Function
+	#tag EndMethod
+
+	#tag Method, Flags = &h0, CompatibilityFlags = (TargetConsole and (Target32Bit or Target64Bit)) or  (TargetDesktop and (Target32Bit or Target64Bit)) or  (TargetIOS and (Target64Bit)) or  (TargetAndroid and (Target64Bit)), Description = 52657475726E7320746865206C6173742062726561646372756D622E2050617373207468652073657373696F6E204964656E74696669657220696620696E2061205765622050726F6A656374
+		Function LastBreadcrumb(sessionID As String = "") As Dictionary
+		  #if TargetWeb
+		    
+		    if breadcrumbsWeb is nil then Return nil
+		    
+		    Dim sessionCrumbs() as Dictionary
+		    
+		    if breadcrumbsWeb.HasKey(SessionID) then
+		      sessionCrumbs = breadcrumbsWeb.Value(SessionID)
+		      
+		      if sessionCrumbs.Count > 0 then
+		        
+		        Return sessionCrumbs(sessionCrumbs.LastIndex)
+		        
+		      end if
+		    end if
+		    
+		    
+		    
+		  #else
+		    
+		    if breadcrumbs is nil then Return nil
+		    
+		    if breadcrumbs.Count > 0 then
+		      
+		      Return breadcrumbs(breadcrumbs.LastIndex)
+		      
+		      
 		    end if
 		    
 		  #endif
@@ -1617,6 +1785,52 @@ Class SentryController
 		  if tempExtra.HasKey(key) then
 		    tempExtra.Remove(key)
 		  end if
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h0, CompatibilityFlags = (TargetConsole and (Target32Bit or Target64Bit)) or  (TargetDesktop and (Target32Bit or Target64Bit)) or  (TargetIOS and (Target64Bit)) or  (TargetAndroid and (Target64Bit)), Description = 52656D6F76657320746865206C6173742061646465642062726561646372756D622E2053657373696F6E4944206973207265636F6D6D656E646564206F6E205765622E
+		Sub RemoveLastBreadcrumb(sessionID As String = "")
+		  // Removes the last added breadcrumb. SessionID is recommended on Web.
+		  // SessionID is ignored on other platforms
+		  #if TargetWeb
+		    
+		    //Try getting the current session
+		    if sessionID.IsEmpty then
+		      if session is nil then Return 
+		      Dim aSession As WebSession = Session
+		      sessionID = aSession.Identifier
+		    end if
+		    
+		    Dim sessionCrumbs() As Dictionary
+		    if breadcrumbsWeb is nil then
+		      breadcrumbsWeb = new Dictionary
+		    end if
+		    
+		    if breadcrumbsWeb.HasKey(SessionID) then
+		      sessionCrumbs = breadcrumbsWeb.Value(SessionID)
+		    end if
+		    
+		    
+		    
+		    if sessionCrumbs.Count > 0 then
+		      
+		      sessionCrumbs.ResizeTo(sessionCrumbs.LastIndex-1)
+		      
+		      
+		    end if
+		    
+		  #else
+		    #Pragma Unused sessionID
+		    
+		    if breadcrumbs.Count > 0 then
+		      
+		      breadcrumbs.ResizeTo(breadcrumbs.LastIndex-1)
+		      
+		      
+		    end if
+		    
+		    
+		  #endif
 		End Sub
 	#tag EndMethod
 
@@ -1765,10 +1979,7 @@ Class SentryController
 		  
 		  //Build the header to submit
 		  dim header as String
-		  header="Sentry sentry_version=7,sentry_client=Xojo-Sentry/"+kVersion+"," + _
-		  "sentry_timestamp=" + DateTime.now.SecondsFrom1970.ToString(locale.Raw, "######") + "," + _
-		  "sentry_key="+PublicKey '+ '"&" + _
-		  '"sentry_secret="+SecretKey
+		  header=GetEnvelopeHeader()
 		  
 		  
 		  sock.RequestHeader("User-Agent") = "Xojo-Sentry/"+kVersion
@@ -1853,11 +2064,13 @@ Class SentryController
 		End Sub
 	#tag EndMethod
 
-	#tag Method, Flags = &h0, CompatibilityFlags = (TargetConsole and (Target32Bit or Target64Bit)) or  (TargetDesktop and (Target32Bit or Target64Bit)) or  (TargetIOS and (Target64Bit)), Description = 53656E64732073657373696F6E20696E666F726D6174696F6E
+	#tag Method, Flags = &h0, CompatibilityFlags = (TargetConsole and (Target32Bit or Target64Bit)) or  (TargetDesktop and (Target32Bit or Target64Bit)) or  (TargetIOS and (Target64Bit)), Description = 53656E64732073657373696F6E20696E666F726D6174696F6E20746F2053656E7472792E20412053657373696F6E206973206E6F7420612057656253657373696F6E2E20412053657373696F6E20697320616E206F70656E696E67202F20636C6F73696E67206F6620616E20617070
 		Sub SendSessionInfo(status As sessionStatus = Sessionstatus.ok, duration As Integer = 0)
 		  // ⚠️ Warning, not available for Web projects at the moment.
 		  
 		  // A Session is not a WebSession. A Session is an opening / closing of an app
+		  
+		  //Documentation: https://develop.sentry.dev/sdk/sessions/
 		  
 		  if self.Options.sample_rate < 1.0 then
 		    
@@ -1900,15 +2113,23 @@ Class SentryController
 		    Dim now As new DateTime(DateTime.Now.SecondsFrom1970, GMTZone)
 		    
 		    js.Value("started") = now.SQLDateTime.Replace(" ", "T") + "Z"
+		    
+		    sessionStartTime = DateTime.Now
 		  else
 		    js.Value("sid") = self.sessionID
 		  end if
+		  
 		  if self.user <> nil and self.user.user_id.IsEmpty = False then
 		    js.Value("did") = self.user.user_id
 		  end if
-		  'js.Value("seq") = 
+		  
 		  if duration > 0 then
 		    js.Value("duration") = duration
+		  Elseif self.sessionStartTime <> nil then
+		    duration = Round(DateTime.Now.SecondsFrom1970 - self.sessionStartTime.SecondsFrom1970)
+		    if duration > 0 then
+		      js.Value("duration") = duration
+		    end if
 		  end if
 		  
 		  Select case status
@@ -1934,7 +2155,22 @@ Class SentryController
 		  end if
 		  
 		  Dim attrs as new Dictionary
-		  attrs.Value("release") = getAppVersion
+		  
+		  //new v0.7
+		  #if TargetIOS
+		    if Options <> nil and not Options.app_name.IsEmpty then
+		      attrs.Value("release") = Options.app_name + "@" + getAppVersion
+		    Else
+		      attrs.Value("release") = getAppVersion
+		    end if
+		  #Else
+		    if Options <> nil and not Options.app_name.IsEmpty then
+		      attrs.Value("release") = Options.app_name + "@" + getAppVersion
+		    Else
+		      attrs.Value("release") = app.ExecutableFile.name + "@" + getAppVersion
+		    end if
+		  #endif
+		  
 		  
 		  #if TargetIOS
 		    If iOS_isTestflightXC then
@@ -1952,8 +2188,6 @@ Class SentryController
 		    #endif
 		  #endif
 		  
-		  'attrs.Value("ip_address") = "Linux"
-		  'attrs.Value("user_agent") = "Linux"
 		  
 		  js.Value("attrs") = attrs
 		  
@@ -1972,10 +2206,7 @@ Class SentryController
 		  
 		  //Build the header to submit
 		  dim header as String
-		  header="Sentry sentry_version=7,sentry_client=Xojo-Sentry/"+kVersion+"," + _
-		  "sentry_timestamp=" + DateTime.now.SecondsFrom1970.ToString(locale.Raw, "######") + "," + _
-		  "sentry_key="+PublicKey '+ '"&" + _
-		  '"sentry_secret="+SecretKey
+		  header=GetEnvelopeHeader()
 		  
 		  
 		  sock.RequestHeader("User-Agent") = "Xojo-Sentry/"+kVersion
@@ -1990,8 +2221,19 @@ Class SentryController
 		  'tag.Value("sentry-data") = data
 		  
 		  sock.callBack = WeakAddressOf StartSession_Process
-		  sock.Send("POST", uri + "/api/" + ProjectID + "/envelope/")
 		  
+		  if status = sessionStatus.ok then
+		    sock.Send("POST", uri + "/api/" + ProjectID + "/envelope/")
+		  Else
+		    //Send immediately
+		    try
+		      #Pragma BreakOnExceptions False
+		      //Wrapping in try... catch as it can create an exception if not connected
+		      call sock.SendSync("POST", uri + "/api/" + ProjectID + "/envelope/", 3) //3sec timeout
+		    Catch
+		    end try
+		    
+		  end if
 		End Sub
 	#tag EndMethod
 
@@ -2039,10 +2281,7 @@ Class SentryController
 		  
 		  //Build the header to submit
 		  dim header As String
-		  header="Sentry sentry_version=7,sentry_client=Xojo-Sentry/"+kVersion+"," + _
-		  "sentry_timestamp=" + now.SecondsFrom1970.ToString(locale.Raw, "######") + "," + _
-		  "sentry_key="+PublicKey '+ '"&" + _
-		  '"sentry_secret="+SecretKey
+		  header=GetEnvelopeHeader()
 		  
 		  
 		  sock.RequestHeader("User-Agent") = "Xojo-Sentry/"+kVersion
@@ -2080,10 +2319,7 @@ Class SentryController
 		  
 		  //Build the header to submit
 		  dim header As String
-		  header="Sentry sentry_version=7,sentry_client=Xojo-Sentry/"+kVersion+"," + _
-		  "sentry_timestamp=" + now.SecondsFrom1970.ToString(locale.Raw, "######") + "," + _
-		  "sentry_key="+PublicKey '+ '"&" + _
-		  '"sentry_secret="+SecretKey
+		  header=GetEnvelopeHeader()
 		  
 		  
 		  sock.RequestHeader("User-Agent") = "Xojo-Sentry/"+kVersion
@@ -2101,7 +2337,11 @@ Class SentryController
 		  
 		  'sock.callBack = WeakAddressOf SendToSentry_Process
 		  if Options <> nil and Options.send_sync then
-		    Var result as string = sock.SendSync("POST", uri + "/api/" + ProjectID + "/store/", 60)
+		    Var result as string
+		    try
+		      result = sock.SendSync("POST", uri + "/api/" + ProjectID + "/store/", 60)
+		    catch
+		    end try
 		    #if DebugBuild
 		      System.DebugLog CurrentMethodName + "_result: " + result
 		    #endif
@@ -2262,10 +2502,7 @@ Class SentryController
 		  
 		  //Build the header to submit
 		  dim header as String
-		  header="Sentry sentry_version=7,sentry_client=Xojo-Sentry/"+kVersion+"," + _
-		  "sentry_timestamp=" + Datetime.now.SecondsFrom1970.ToString(locale.Raw, "######") + "," + _
-		  "sentry_key="+PublicKey '+ '"&" + _
-		  '"sentry_secret="+SecretKey
+		  header=GetEnvelopeHeader()
 		  
 		  
 		  sock.RequestHeader("User-Agent") = "Xojo-Sentry/"+kVersion
@@ -2378,8 +2615,8 @@ Class SentryController
 		End Sub
 	#tag EndMethod
 
-	#tag Method, Flags = &h21, CompatibilityFlags = (TargetConsole and (Target32Bit or Target64Bit)) or  (TargetWeb and (Target32Bit or Target64Bit)) or  (TargetDesktop and (Target32Bit or Target64Bit)) or  (TargetIOS and (Target64Bit))
-		Private Sub StartSession_Process(data As String, error As RuntimeException, response As SentryResponse)
+	#tag Method, Flags = &h1, CompatibilityFlags = (TargetConsole and (Target32Bit or Target64Bit)) or  (TargetWeb and (Target32Bit or Target64Bit)) or  (TargetDesktop and (Target32Bit or Target64Bit)) or  (TargetIOS and (Target64Bit))
+		Protected Sub StartSession_Process(data As String, error As RuntimeException, response As SentryResponse)
 		  #Pragma Unused data
 		  #Pragma Unused Error
 		  
@@ -2399,15 +2636,31 @@ Class SentryController
 	#tag EndMethod
 
 	#tag Method, Flags = &h0, Description = 41207370616E20697320612074696D6564206170706C69636174696F6E206576656E74207468617420686173206120737461727420616E6420656E642074696D65
-		Function StartSpan(transaction As SentryTrace = nil, operation As String, description As String, Optional parent_span_id As String) As SentrySpan
-		  #if not TargetWeb
-		    if transaction is nil then
-		      transaction = currentTrace
+		Function StartSpan(parentTrace As SentryTrace = nil, operation As String, description As String, Optional parent_span_id As String) As SentrySpan
+		  //For a list of operations, see here: https://develop.sentry.dev/sdk/performance/span-operations/
+		  
+		  #if TargetWeb
+		    if parentTrace is nil and session <> nil then
+		      Dim sessionID As String = session.identifier
+		      
+		      if currentTraceWeb <> nil and currentTraceWeb.HasKey(sessionID) then
+		        parentTrace = currentTraceWeb.Value(sessionID)
+		      end if
+		    end if
+		    
+		    
+		    
+		  #else
+		    if parentTrace is nil then
+		      parentTrace = currentTrace
 		    end if
 		  #endif
 		  
-		  if transaction is nil then
-		    System.DebugLog CurrentMethodName + " " + "A call to StartTracing is required before starting a span"
+		  if parentTrace is nil then
+		    System.DebugLog CurrentMethodName + " " + "A call to StartTracing is required before starting a span."
+		    Return nil
+		  elseif parentTrace.stopped then
+		    System.DebugLog CurrentMethodName + " " + "The parentTrace has already been Finished. Can't StartSpan on a finished Trace."
 		    Return nil
 		  end if
 		  
@@ -2415,7 +2668,7 @@ Class SentryController
 		  
 		  Dim sp As new SentrySpan
 		  sp.start_timestamp = GetCurrentTimestamp()
-		  sp.parentTrace = transaction
+		  sp.parentTrace = parentTrace
 		  
 		  sp.span_id = GenerateUUID.ReplaceAll("-", "").Left(16)
 		  
@@ -2430,13 +2683,13 @@ Class SentryController
 		    if currentSpansIDs.Count > 0 then
 		      sp.parent_span_id = currentSpansIDs(currentSpansIDs.LastIndex)
 		    Else
-		      sp.parent_span_id = transaction.span_id
+		      sp.parent_span_id = parentTrace.span_id
 		    end if
 		  else
 		    sp.parent_span_id = parent_span_id
 		  end if
 		  
-		  sp.trace_id = transaction.trace_id
+		  sp.trace_id = parentTrace.trace_id
 		  
 		  
 		  currentSpansIDs.Add sp.span_id
@@ -2448,6 +2701,8 @@ Class SentryController
 
 	#tag Method, Flags = &h0
 		Function StartTracing(operation As String, description As String, level As Xojo_Sentry.errorLevel = Xojo_Sentry.errorLevel.info) As SentryTrace
+		  //For a list of operations, see here: https://develop.sentry.dev/sdk/performance/span-operations/
+		  
 		  Dim transaction As new SentryTrace
 		  transaction.start_timestamp = GetCurrentTimestamp()
 		  transaction.event_id = GenerateUUID
@@ -2460,8 +2715,23 @@ Class SentryController
 		  
 		  
 		  
-		  #if not TargetWeb
+		  #if TargetWeb
+		    Dim sessionID As String
+		    if session <> nil then
+		      sessionID = session.Identifier
+		    end if
+		    if not sessionID.IsEmpty then
+		      if currentTraceWeb is nil then
+		        currentTraceWeb = new Dictionary
+		      end if
+		      if currentTraceWeb.HasKey(sessionID) = False then
+		        currentTraceWeb.Value(sessionID) = transaction
+		      end if
+		    end if
+		    
+		  #else
 		    self.currentTrace = transaction
+		    
 		  #endif
 		  
 		  Return transaction
@@ -2500,25 +2770,50 @@ Class SentryController
 	#tag EndMethod
 
 	#tag Method, Flags = &h0, Description = 46696E69736865732074686520706173736564207472616E73616374696F6E2E2050617373206E696C20746F2066696E697368207468652053656E74727927732063757272656E74207472616E73616374696F6E
-		Sub StopTracing(transaction As SentryTrace = nil, message As String = "", Session As Variant = nil, level As Xojo_Sentry.errorLevel = Xojo_Sentry.errorLevel.info)
+		Sub StopTracing(trace As SentryTrace = nil, message As String = "", Session As Variant = nil, level As Xojo_Sentry.errorLevel = Xojo_Sentry.errorLevel.info)
+		  Dim sessionIdentifier As String
+		  #if TargetWeb
+		    if Session <> nil then
+		      Dim aSession As WebSession = Session
+		      sessionIdentifier = aSession.Identifier
+		    end if
+		  #endif
+		  
 		  
 		  #if TargetWeb
-		    if transaction is nil then Return
+		    
+		    if not sessionIdentifier.IsEmpty then
+		      
+		      if currentTraceWeb <> nil and currentTraceWeb.HasKey(sessionIdentifier) then
+		        
+		        if trace is nil then
+		          trace = currentTraceWeb.Value(sessionIdentifier)
+		          currentTraceWeb.Remove(sessionIdentifier)
+		        Elseif trace = currentTraceWeb.Value(sessionIdentifier) then
+		          currentTraceWeb.Remove(sessionIdentifier)
+		        end if
+		      end if
+		      
+		    end if
+		    
+		    
+		    
+		    if trace is nil then Return
 		  #else
-		    if transaction is nil and currentTrace is nil then Return
+		    if trace is nil and currentTrace is nil then Return
 		    
 		    
-		    if transaction is nil then
-		      transaction = currentTrace
+		    if trace is nil then
+		      trace = currentTrace
 		      self.currentTrace = nil
-		    elseif transaction = self.currentTrace then
+		    elseif trace = self.currentTrace then
 		      self.currentTrace = nil
 		    end if
 		    
 		  #endif
 		  
-		  if transaction.timestamp = 0.0 then
-		    transaction.timestamp = GetCurrentTimestamp()
+		  if trace.timestamp = 0.0 then
+		    trace.timestamp = GetCurrentTimestamp()
 		  end if
 		  
 		  
@@ -2540,22 +2835,15 @@ Class SentryController
 		  end if
 		  
 		  
-		  Dim sessionIdentifier As String
-		  #if TargetWeb
-		    if Session <> nil then
-		      Dim aSession As WebSession = Session
-		      sessionIdentifier = aSession.Identifier
-		    end if
-		  #endif
 		  
 		  
 		  ////////////////////
 		  // Tags
 		  ////////////////////
-		  transaction.tags = GenerateTags("", sessionIdentifier)
+		  trace.tags = GenerateTags("", sessionIdentifier)
 		  
 		  
-		  transaction.level = level
+		  trace.level = level
 		  
 		  
 		  
@@ -2575,7 +2863,7 @@ Class SentryController
 		  Dim envelope As String
 		  
 		  Dim jsHeader As new Dictionary
-		  jsHeader.Value("event_id") = transaction.event_id
+		  jsHeader.Value("event_id") = trace.event_id
 		  
 		  Dim jsType As new Dictionary
 		  jsType.Value("type") = "transaction"
@@ -2588,9 +2876,9 @@ Class SentryController
 		  
 		  js.Value("type") = "transaction"
 		  
-		  js.Value("event_id") = transaction.event_id
+		  js.Value("event_id") = trace.event_id
 		  js.Value("project") = self.ProjectID
-		  js.Value("transaction") = transaction.description
+		  js.Value("transaction") = trace.description
 		  'if transaction.description.IsEmpty = False then
 		  'js.Value("title") = transaction.description
 		  'end if
@@ -2599,8 +2887,8 @@ Class SentryController
 		    js.Value("message") = message
 		  end if
 		  
-		  js.Value("start_timestamp") = transaction.start_timestamp
-		  js.Value("timestamp") = transaction.timestamp
+		  js.Value("start_timestamp") = trace.start_timestamp
+		  js.Value("timestamp") = trace.timestamp
 		  
 		  ////////////////////
 		  // Contexts
@@ -2610,7 +2898,7 @@ Class SentryController
 		  //add os version info
 		  contexts.Value("os") = GenerateOSInfo()
 		  
-		  contexts.Value("trace") = transaction.GenerateJS
+		  contexts.Value("trace") = trace.GenerateJS
 		  
 		  js.Value("contexts") = contexts
 		  
@@ -2660,7 +2948,7 @@ Class SentryController
 		  // Spans
 		  ////////////////////
 		  Var jsSpans() as Dictionary
-		  For each sp as SentrySpan in transaction.spans
+		  For each sp as SentrySpan in trace.spans
 		    jsSpans.Add sp.GenerateJS
 		  Next
 		  js.Value("spans") = jsSpans
@@ -2697,10 +2985,7 @@ Class SentryController
 		  
 		  //Build the header to submit
 		  dim header as String
-		  header="Sentry sentry_version=7,sentry_client=Xojo-Sentry/"+kVersion+"," + _
-		  "sentry_timestamp=" + GetCurrentTimestamp.ToString("0.00") + "," + _
-		  "sentry_key="+PublicKey '+ '"&" + _
-		  '"sentry_secret="+SecretKey
+		  header=GetEnvelopeHeader()
 		  
 		  
 		  sock.RequestHeader("User-Agent") = "Xojo-Sentry/"+kVersion
@@ -2725,6 +3010,10 @@ Class SentryController
 	#tag Method, Flags = &h0, Description = 53656E647320616E20657863657074696F6E20746F2053656E747279
 		Sub SubmitException(mException As RuntimeException, currentFunction As String, message As String = "", level As errorLevel = ErrorLevel.error, aWebSession As Variant = Nil)
 		  try
+		    
+		    if level = errorLevel.error or level = errorLevel.fatal then
+		      self.errorCount = errorCount + 1
+		    end if
 		    
 		    #if TargetWeb
 		      if aWebSession is nil then
@@ -2775,6 +3064,19 @@ Class SentryController
 		  end try
 		  
 		  
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h0, CompatibilityFlags = (TargetConsole and (Target32Bit or Target64Bit)) or  (TargetDesktop and (Target32Bit or Target64Bit)) or  (TargetIOS and (Target64Bit))
+		Sub TerminateSession()
+		  #if DebugBuild
+		    System.DebugLog CurrentMethodName
+		  #endif
+		  
+		  SendSessionInfo(sessionStatus.exited)
+		  
+		  //Make sure next session starts with 0 errors
+		  self.errorCount = 0
 		End Sub
 	#tag EndMethod
 
@@ -2935,9 +3237,9 @@ Class SentryController
 		        
 		      end if
 		      
-		    End Select
-		    
-		    Return VersionNumber
+		      
+		      
+		      Return VersionNumber
 		    End Select
 		    
 		    Return ""
@@ -3073,6 +3375,10 @@ Class SentryController
 	#tag EndProperty
 
 	#tag Property, Flags = &h21
+		Private currentTraceWeb As Dictionary
+	#tag EndProperty
+
+	#tag Property, Flags = &h21
 		Private dicReportingFilter As Dictionary
 	#tag EndProperty
 
@@ -3138,6 +3444,10 @@ Class SentryController
 		Protected sessionID As String
 	#tag EndProperty
 
+	#tag Property, Flags = &h1
+		Protected sessionStartTime As DateTime
+	#tag EndProperty
+
 	#tag Property, Flags = &h21
 		Private startTime As DateTime
 	#tag EndProperty
@@ -3150,8 +3460,8 @@ Class SentryController
 		Protected tempTags As Dictionary
 	#tag EndProperty
 
-	#tag Property, Flags = &h21
-		Private URI As String
+	#tag Property, Flags = &h1
+		Protected URI As String
 	#tag EndProperty
 
 	#tag Property, Flags = &h0, CompatibilityFlags = (TargetConsole and (Target32Bit or Target64Bit)) or  (TargetDesktop and (Target32Bit or Target64Bit)) or  (TargetIOS and (Target64Bit)) or  (TargetAndroid and (Target64Bit))
