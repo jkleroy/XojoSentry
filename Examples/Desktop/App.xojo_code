@@ -5,7 +5,13 @@ Inherits DesktopApplication
 		Sub Activated()
 		  if app.Sentry <> nil then
 		    app.Sentry.AddBreadcrumb(CurrentMethodName, "")
+		    
+		    
+		    timer.CancelCallLater(AddressOf sentry.TerminateSession)
+		    
+		    
 		  end if
+		  
 		End Sub
 	#tag EndEvent
 
@@ -18,9 +24,32 @@ Inherits DesktopApplication
 	#tag EndEvent
 
 	#tag Event
+		Sub Closing()
+		  if app.sentry <> nil then
+		    
+		    app.sentry.TerminateSession
+		    //Terminate session does the same as calling 
+		    // app.Sentry.SendSessionInfo(Xojo_Sentry.sessionStatus.exited)
+		    
+		    
+		    
+		    System.GotoURL("https://sentry.io/releases")
+		  end if
+		  
+		  
+		End Sub
+	#tag EndEvent
+
+	#tag Event
 		Sub Deactivated()
 		  if app.Sentry <> nil then
 		    app.Sentry.AddBreadcrumb(CurrentMethodName, "")
+		    
+		    timer.CallLater(20000, AddressOf Sentry.TerminateSession)
+		    
+		    
+		    app.sentry.SendSessionInfo(Xojo_Sentry.sessionStatus.ok)
+		    
 		  end if
 		  
 		End Sub
@@ -28,17 +57,16 @@ Inherits DesktopApplication
 
 	#tag Event
 		Sub Opening()
-		  
-		  
+		  self.AllowAutoQuit = True
 		  
 		  Dim DSN As String = "<<YOUR DSN>>"
 		  
-		  
+		  dsn = "https://51a9018e162a4736947673c7eb8146bd@o477691.ingest.us.sentry.io/4507132620832768"
 		  
 		  //Initialise Sentry
 		  If DSN.IsEmpty or DSN = "<<YOUR DSN>>" then
 		    Break //Get a DSN string from https://sentry.io
-		    Quit
+		    Quit(1)
 		    Return
 		  End If
 		  
@@ -52,6 +80,7 @@ Inherits DesktopApplication
 		  self.sentry.Options.max_breadcrumbs = 100
 		  self.sentry.Options.sample_rate = 1.0 //Keep this value at 1.0 when debugging, change value for a released app
 		  self.sentry.Options.save_before_sending = False //Set to True if your app will quit on exceptions
+		  self.sentry.Options.app_name = "Sentry_Desktop" //Set your app name here. If not set, the App.executablefile.name will be used
 		  #if DebugBuild
 		    self.sentry.Options.traces_sample_rate = 1.0 //Keep this value at 1.0 when debugging, change value for a released app
 		  #else
@@ -94,6 +123,8 @@ Inherits DesktopApplication
 		    #else
 		      app.Sentry.SubmitException(error, "", "", Xojo_Sentry.errorLevel.error)
 		    #endif
+		    
+		    app.sentry.SendSessionInfo(Xojo_Sentry.sessionStatus.abnormal)
 		    
 		    //Revert to the previous value
 		    sentry.Options.save_before_sending = lastValue
