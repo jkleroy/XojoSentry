@@ -72,8 +72,6 @@ Inherits MobileApplication
 		  Dim DSN As String = "<<YOUR DSN>>"
 		  
 		  
-		  dsn = "https://51a9018e162a4736947673c7eb8146bd@o477691.ingest.us.sentry.io/4507132620832768"
-		  
 		  //Initialise Sentry
 		  If DSN.IsEmpty or DSN = "<<YOUR DSN>>" then
 		    Break //Get a DSN string from https://sentry.io
