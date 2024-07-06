@@ -791,15 +791,15 @@ Class SentryController
 		  //new v0.7
 		  #if TargetIOS
 		    if Options <> nil and not Options.app_name.IsEmpty then
-		      j.Value("release") = Options.app_name + "@" + getAppVersion
+		      j.Value("release") = Options.app_name + "@" + getAppVersion(true)
 		    Else
 		      j.Value("release") = getAppVersion
 		    end if
 		  #Else
 		    if Options <> nil and not Options.app_name.IsEmpty then
-		      j.Value("release") = Options.app_name + "@" + getAppVersion
+		      j.Value("release") = Options.app_name + "@" + getAppVersion(true)
 		    Else
-		      j.Value("release") = app.ExecutableFile.name + "@" + getAppVersion
+		      j.Value("release") = app.ExecutableFile.name + "@" + getAppVersion(true)
 		    end if
 		  #endif
 		  
@@ -1433,7 +1433,7 @@ Class SentryController
 	#tag EndMethod
 
 	#tag Method, Flags = &h1
-		Protected Function getAppVersion() As String
+		Protected Function getAppVersion(withBuildNumber As Boolean = False) As String
 		  
 		  #if TargetIOS
 		    declare function NSClassFromString lib "Foundation" (clsName as CFStringRef) as ptr
@@ -1442,14 +1442,15 @@ Class SentryController
 		    (obj_id as ptr, key as CFStringRef) as CFStringRef
 		    
 		    
+		    Dim value As String = objectForInfoDictionaryKey(mainBundle(NSClassFromString("NSBundle")), "CFBundleShortVersionString")
 		    
-		    Return objectForInfoDictionaryKey(mainBundle(NSClassFromString("NSBundle")), "CFBundleShortVersionString")
+		    Return value + if(withBuildNumber, "+" + app.NonReleaseVersion.ToString, "")
 		    
 		  #else
 		    
 		    Dim fullVersion As String
 		    fullVersion = app.MajorVersion.ToString + "." + app.MinorVersion.ToString + "." _
-		    + app.BugVersion.ToString + "+" + app.NonReleaseVersion.ToString
+		    + app.BugVersion.ToString + if(withBuildNumber, "+" + app.NonReleaseVersion.ToString, "")
 		    
 		    Return fullVersion
 		    
@@ -2159,15 +2160,15 @@ Class SentryController
 		  //new v0.7
 		  #if TargetIOS
 		    if Options <> nil and not Options.app_name.IsEmpty then
-		      attrs.Value("release") = Options.app_name + "@" + getAppVersion
+		      attrs.Value("release") = Options.app_name + "@" + getAppVersion(true)
 		    Else
 		      attrs.Value("release") = getAppVersion
 		    end if
 		  #Else
 		    if Options <> nil and not Options.app_name.IsEmpty then
-		      attrs.Value("release") = Options.app_name + "@" + getAppVersion
+		      attrs.Value("release") = Options.app_name + "@" + getAppVersion(true)
 		    Else
-		      attrs.Value("release") = app.ExecutableFile.name + "@" + getAppVersion
+		      attrs.Value("release") = app.ExecutableFile.name + "@" + getAppVersion(true)
 		    end if
 		  #endif
 		  

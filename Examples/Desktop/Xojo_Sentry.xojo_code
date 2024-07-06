@@ -6,6 +6,7 @@ Protected Module Xojo_Sentry
 
 
 	#tag Note, Name = History
+		# Version 0.7
 		
 		New
 		SentryOptions.persistant_breadcrumbs defaults to 10

@@ -6,6 +6,22 @@ Inherits MobileApplication
 		Sub Activated()
 		  if app.Sentry <> nil then
 		    app.Sentry.AddBreadcrumb(CurrentMethodName, "")
+		    
+		    timer.CancelCallLater(AddressOf sentry.TerminateSession)
+		    
+		    app.sentry.SendSessionInfo(Xojo_Sentry.sessionStatus.ok)
+		    
+		  end if
+		End Sub
+	#tag EndEvent
+
+	#tag Event
+		Sub Closing()
+		  if app.sentry <> nil then
+		    
+		    app.Sentry.SendSessionInfo(Xojo_Sentry.sessionStatus.exited)
+		    
+		    
 		  end if
 		End Sub
 	#tag EndEvent
@@ -14,7 +30,14 @@ Inherits MobileApplication
 		Sub Deactivating()
 		  if app.Sentry <> nil then
 		    app.Sentry.AddBreadcrumb(CurrentMethodName, "")
+		    
+		    timer.CallLater(20000, AddressOf app.Sentry.TerminateSession)
+		    
+		    app.sentry.SendSessionInfo(Xojo_Sentry.sessionStatus.ok)
+		    
 		  end if
+		  
+		  
 		End Sub
 	#tag EndEvent
 
@@ -49,6 +72,7 @@ Inherits MobileApplication
 		  Dim DSN As String = "<<YOUR DSN>>"
 		  
 		  
+		  dsn = "https://51a9018e162a4736947673c7eb8146bd@o477691.ingest.us.sentry.io/4507132620832768"
 		  
 		  //Initialise Sentry
 		  If DSN.IsEmpty or DSN = "<<YOUR DSN>>" then

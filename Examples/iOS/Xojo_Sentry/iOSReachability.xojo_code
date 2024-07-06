@@ -1,6 +1,6 @@
 #tag Class
 Private Class iOSReachability
-	#tag CompatibilityFlags = (TargetIOS and (Target64Bit))
+	#tag CompatibilityFlags = ( TargetIOS and ( Target64Bit ) )
 	#tag Method, Flags = &h0
 		Sub Constructor(hostname As String = "")
 		  #if TargetIOS

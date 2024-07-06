@@ -18,6 +18,10 @@ Inherits URLConnection
 		  Catch
 		    
 		  end try
+		  
+		  
+		  response = nil
+		  callBack = nil
 		End Sub
 	#tag EndEvent
 
@@ -41,6 +45,8 @@ Inherits URLConnection
 		  End Try
 		  
 		  
+		  response = nil
+		  callBack = nil
 		End Sub
 	#tag EndEvent
 
