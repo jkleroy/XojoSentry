@@ -1382,7 +1382,9 @@ Class SentryController
 		    
 		    release( nsuuidPtr )
 		    
-		    self.mlastUUID = GUID.ReplaceAll("-", "").Lowercase
+		    GUID = GUID.ReplaceAll("-", "").Lowercase
+		     
+		    self.mlastUUID = GUID
 		    Return GUID
 		    
 		  #else
