@@ -7,13 +7,13 @@
  API for using https://sentry.io
 
 - Release date: 2023-01-10
-- Latest update: 2024-05-01
+- Latest update: 2024-08-30
 
-Language: Xojo 2023r3 Desktop, Web & iOS Project
+Language: Xojo 2024r2 Desktop, Web & iOS Project
 
 Author: Jeremie Leroy
 
-Version 0.6
+Version 0.7
 
 Based on the original code from Mike Cotrone https://github.com/mikecotrone/XojoSentryV2
 
