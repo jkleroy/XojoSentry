@@ -169,7 +169,7 @@ Protected Class SentryOptions
 			Group="Behavior"
 			InitialValue=""
 			Type="String"
-			EditorType="MultiLineEditor"
+			EditorType=""
 		#tag EndViewProperty
 	#tag EndViewBehavior
 End Class

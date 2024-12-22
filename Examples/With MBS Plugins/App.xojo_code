@@ -146,9 +146,17 @@ Inherits DesktopApplication
 		  self.sentry.user = user
 		  
 		  
+		  //When using MBS plugins
+		  //Make sure to keep a reference to MBSExceptionHandler
+		  //And set Xojo_Sentry.kUseMBSPlugins constant to True
+		  self.MBSException = new MBSExceptionHandler
 		End Sub
 	#tag EndMethod
 
+
+	#tag Property, Flags = &h21
+		Private MBSException As MBSExceptionHandler
+	#tag EndProperty
 
 	#tag Property, Flags = &h0
 		sentry As SentryController
