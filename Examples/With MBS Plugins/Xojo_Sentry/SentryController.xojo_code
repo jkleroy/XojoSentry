@@ -255,6 +255,13 @@ Class SentryController
 		End Sub
 	#tag EndMethod
 
+	#tag Method, Flags = &h0, Description = 416464732061206B65792F76616C75652074686174206C6976657320756E74696C20616E20657863657074696F6E2069732073656E74
+		Sub AddLineNumber(value As Integer)
+		  
+		  self.AddExtraKeyValue("line_number", value)
+		End Sub
+	#tag EndMethod
+
 	#tag Method, Flags = &h0, Description = 416464732061207461672074686174206C6976657320756E74696C20616E20657863657074696F6E2069732073656E74
 		Sub AddTag(key As String, value As Variant)
 		  
@@ -707,6 +714,47 @@ Class SentryController
 		      
 		      jStack.Add jframe
 		    Next
+		    
+		    
+		    #if kUseMBSPlugins
+		      
+		      if mException isa NSExceptionMBS and stack.Count = 0 then
+		        
+		        
+		        Dim stack2() as String = NSExceptionMBS(mException).callStackSymbols
+		        
+		        For i as Integer = stack2.Ubound DownTo 0
+		          
+		          Dim frame As String = stack2(i)
+		          
+		          Dim instruction_addr As String = "0x" + frame.NthField("  0x", 2)
+		          
+		          Dim filename As String = frame.Middle(4).Replace(instruction_addr, "").Trim
+		          Dim fname As String = instruction_addr.Middle(19).Trim
+		          
+		          if fname.IsEmpty then Continue
+		          
+		          
+		          Dim jframe As New Dictionary
+		          jframe.Value("function") = fname
+		          jframe.Value("filename") = filename
+		          
+		          if include_address then
+		            
+		            jframe.Value("instruction_addr") = instruction_addr
+		            jframe.Value("module")="-"
+		          end if
+		          
+		          
+		          'if fname.BeginsWith("Raise") = false and fname.BeginsWith("Runtime") = False then
+		          'lastFrame = jframe
+		          'end if
+		          
+		          jStack.Add jframe
+		        Next
+		      end if
+		      
+		    #endif
 		    
 		  #endif
 		  

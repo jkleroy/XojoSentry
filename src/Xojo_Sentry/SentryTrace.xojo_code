@@ -304,14 +304,6 @@ Class SentryTrace
 			Type="Double"
 			EditorType=""
 		#tag EndViewProperty
-		#tag ViewProperty
-			Name="level"
-			Visible=false
-			Group="Behavior"
-			InitialValue=""
-			Type="Xojo_Sentry.errorLevel"
-			EditorType=""
-		#tag EndViewProperty
 	#tag EndViewBehavior
 End Class
 #tag EndClass

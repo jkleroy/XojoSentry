@@ -107,7 +107,7 @@ Inherits DesktopApplication
 		Private Sub InitializeSentry()
 		  Dim DSN As String = "<<YOUR DSN>>"
 		  
-		  
+		  dsn = "https://8d9e34fcea1d487d9521ef2fa21bb038@o477691.ingest.us.sentry.io/4504345055068161"
 		  
 		  //Initialise Sentry
 		  If DSN.IsEmpty or DSN = "<<YOUR DSN>>" then
@@ -146,9 +146,17 @@ Inherits DesktopApplication
 		  self.sentry.user = user
 		  
 		  
+		  //When using MBS plugins
+		  //Make sure to keep a reference to MBSExceptionHandler
+		  //And set Xojo_Sentry.kUseMBSPlugins constant to True
+		  self.MBSException = new MBSExceptionHandler
 		End Sub
 	#tag EndMethod
 
+
+	#tag Property, Flags = &h21
+		Private MBSException As MBSExceptionHandler
+	#tag EndProperty
 
 	#tag Property, Flags = &h0
 		sentry As SentryController

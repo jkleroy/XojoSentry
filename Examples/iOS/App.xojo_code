@@ -67,6 +67,43 @@ Inherits MobileApplication
 	#tag Event
 		Sub Opening()
 		  
+		  InitializeSentry()
+		  
+		  
+		End Sub
+	#tag EndEvent
+
+	#tag Event
+		Function UnhandledException(exc As RuntimeException) As Boolean
+		  #if DebugBuild
+		    Dim reason As String
+		    reason = exc.Message
+		  #endif
+		  
+		  //Exception
+		  
+		  try
+		    #if DebugBuild
+		      app.Sentry.SubmitException(exc, "", "", Xojo_Sentry.errorLevel.debug)
+		    #else
+		      app.Sentry.SubmitException(exc, "", "", Xojo_Sentry.errorLevel.error)
+		    #endif
+		    
+		    
+		    
+		    //Make sure we do not create another exception by sending it to Sentry
+		  Catch err
+		    
+		  end try
+		  
+		  //Return true to let the app running
+		  Return True
+		End Function
+	#tag EndEvent
+
+
+	#tag Method, Flags = &h21
+		Private Sub InitializeSentry()
 		  
 		  
 		  Dim DSN As String = "<<YOUR DSN>>"
@@ -102,35 +139,7 @@ Inherits MobileApplication
 		  
 		  self.sentry.user = user
 		End Sub
-	#tag EndEvent
-
-	#tag Event
-		Function UnhandledException(exc As RuntimeException) As Boolean
-		  #if DebugBuild
-		    Dim reason As String
-		    reason = exc.Message
-		  #endif
-		  
-		  //Exception
-		  
-		  try
-		    #if DebugBuild
-		      app.Sentry.SubmitException(exc, "", "", Xojo_Sentry.errorLevel.debug)
-		    #else
-		      app.Sentry.SubmitException(exc, "", "", Xojo_Sentry.errorLevel.error)
-		    #endif
-		    
-		    
-		    
-		    //Make sure we do not create another exception by sending it to Sentry
-		  Catch err
-		    
-		  end try
-		  
-		  //Return true to let the app running
-		  Return True
-		End Function
-	#tag EndEvent
+	#tag EndMethod
 
 
 	#tag Property, Flags = &h0
