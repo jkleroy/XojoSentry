@@ -27,10 +27,12 @@ This is a full client written in Xojo for Sentry.io. The Sentry.io platform help
 Open one of the example projects
 
 1. Copy/paste the Xojo_Sentry module into your project
-2. Copy/paste the code from App.Opening event into your project
-3. Copy/paste the code from App.UnhandledException event into your project
-4. Register for an account at https://sentry.io
-5. You will get a project DSN from Sentry. Copy that value in the App.Opening event
+2. Add Public Property sentry As SentryController to the App class
+3. Copy/paste the code from App.Opening event into your project
+4. Copy/paste the code from App.UnhandledException event into your project
+5. Register for an account at https://sentry.io
+6. You will get a project DSN from Sentry. Copy that value in the Sentry initialization code
+
 
 
 ## Sentry Options
@@ -152,7 +154,46 @@ App.Sentry.AddLineNumber(100)
 app.sentry.RemoveAllExtra() //On the last line to remove all extra information
 ```
 
+### Network request
 
+Sentry can display information about the last network request that was executed before an exception was sent.
+
+Call the following method just before sending a network request
+`App.Sentry.DefineRequest(HTTPmethod As String, url As String, data As String = "", requestHeaders As Dictionary = nil)`
+
+And remove the request information after the code executed correctly:
+`App.Sentry.RemoveLastRequest()`
+
+## Breadcrumbs
+Sentry uses breadcrumbs to create a trail of events that happened prior to an issue. These events are very similar to traditional logs, but can record more rich structured data.
+
+[Breadcrumbs](https://docs.sentry.io/product/issues/issue-details/breadcrumbs/) are by far my favorite feature of Sentry.
+
+There are several methods that can be used to add a **Breadcrumb**.
+
+```
+//Add a simple breadcrumb by defining a category and optional message
+Sentry.AddBreadcrumb(category As String, message As String = "", level As Xojo_Sentry.errorLevel = Xojo_Sentry.errorLevel.info, data As Dictionary = nil)
+
+//Add a breadcrumb by defining its type, category and message
+Sentry.AddBreadcrumb(type As String, category As String, message As String, level As Xojo_Sentry.errorLevel = Xojo_Sentry.errorLevel.info, data As Dictionary = nil)
+
+//Adds a navigation breadcrumb with an optional message
+Sentry.AddBreadcrumbNavigation(fromScreen As String, toScreen As String, message As String = "")
+
+#if TargetWeb
+//For Web projects use these methods
+
+//Add a breadcrumb tied to the current Session Identifier by defining a category and optional message
+Sentry.AddWebBreadcrumb(SessionID as String, category as String, message as String = "", level as Xojo_Sentry.errorLevel = Xojo_Sentry.errorLevel.info)
+
+//Adds a navigation breadcrumb with an optional message tied to the current Session Identifier
+Sentry.AddWebBreadcrumbNavigation(SessionID As String, fromScreen As String, toScreen As String, message As String = "")
+```
+
+Sentry will then display all available breadcrumbs when an exception is logged:
+
+![image](./images/sentry_breadcrumbs.png)
 
 
 ## More information
