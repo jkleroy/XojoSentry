@@ -121,10 +121,35 @@ App.Sentry.AddTag(key As String, value as String) // Adds a tag that lives until
 App.Sentry.AddGlobalTag(key As String, value as String) // Adds a global tag that is persistant
 ```
 **Removing Tags**
+
 Remove tags by using one of these methods:
 ```xojo
 App.Sentry.RemoveAllGlobalTags()
 App.Sentry.RemoveAllTags()
+```
+
+### Extra key/values
+
+`App.Sentry.AddExtraKeyValue(key as String, value as Variant)` Allows to add a key/value pair that lives until an exception is sent.
+
+This is useful to debug parameter values in a method.
+If the method did not raise an exception to Sentry, it is necessary to do some cleanup at the very end with:
+`App.Sentry.RemoveExtraKeyValue(key As String)` method to remove one Extra Key Value
+`App.Sentry.RemoveAllExtra()` method to remove all extra key values.
+
+### Line numbers
+In difficult to debug methods, it is sometimes necessary to know approximately on which line number a method raised an exception.
+
+```
+App.Sentry.AddLineNumber(1)
+//do something in your code
+App.Sentry.AddLineNumber(3)
+//do something else
+App.Sentry.AddLineNumber(5)
+...
+App.Sentry.AddLineNumber(100)
+...
+app.sentry.RemoveAllExtra() //On the last line to remove all extra information
 ```
 
 
