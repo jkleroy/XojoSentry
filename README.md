@@ -80,6 +80,54 @@ Sentry will then display user's information in the Contexts area
 
 ![image](./images/sentry_user_information.png)
 
+## Submitting an Exception
+Sending an exception to Sentry is a one line code:
+
+```xojo
+App.Sentry.SubmitException(exc, CurrentMethodName) 
+```
+
+Typically, you would wrap some code in a `Try... Catch` statement like this
+```xojo
+try
+  
+  //Some code that may fail
+  
+  Dim dic As new Dictionary
+  Dim value As String = dic.Value("foo")
+  
+Catch exc
+  //Catch the exception and send to Sentry
+  
+  App.sentry.SubmitException(exc, CurrentMethodName)
+  
+  
+end try
+```
+
+## Adding more context to an Exception
+
+Sentry allows many different pieces of context information to be added to an Exception.
+
+### Tags
+
+Xojo_Sentry allows two types of Tags. A global tag or a regular Tag.
+
+```xojo
+App.Sentry.AddTag(key As String, value as String) // Adds a tag that lives until an exception is sent
+
+App.Sentry.AddGlobalTag(key As String, value as String) // Adds a global tag that is persistant
+```
+
+Remove tags by using one of these methods:
+```xojo
+App.Sentry.RemoveAllGlobalTags()
+App.Sentry.RemoveAllTags()
+```
+
+
+
+
 ## More information
 https://github.com/getsentry/sentry
 and
