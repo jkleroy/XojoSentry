@@ -980,6 +980,9 @@ Class SentryController
 		    
 		    jApp.Value("app_version") = getAppVersion
 		    
+		    //new v0.8
+		    jApp.Value("build_date") = app.BuildDateTime.SQLDateTime.Replace(" ", "T") + "Z"
+		    
 		    //new v0.7
 		    jApp.Value("app_memory") = Runtime.MemoryUsed
 		    jApp.Value("object_count") = Runtime.ObjectCount

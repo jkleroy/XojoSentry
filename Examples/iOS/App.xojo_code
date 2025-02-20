@@ -57,7 +57,8 @@ Inherits MobileApplication
 		  "MemoryUsed: " + memoryUsed.ToString + " MB"
 		  
 		  if app.Sentry <> nil then
-		    app.Sentry.AddBreadcrumb(CurrentMethodName, message)
+		    app.Sentry.AddBreadcrumb("info", CurrentMethodName, Xojo_Sentry.errorLevel.warning, _
+		    new Dictionary("ObjectCount": ObjectCount, "MemoryUsed": memoryUsed.ToString + " MB"))
 		  end if
 		  
 		  

@@ -1,7 +1,7 @@
 #tag Class
 Class SentryController
 	#tag Method, Flags = &h0, CompatibilityFlags = (TargetConsole and (Target32Bit or Target64Bit)) or  (TargetDesktop and (Target32Bit or Target64Bit)) or  (TargetIOS and (Target64Bit)) or  (TargetAndroid and (Target64Bit)), Description = 4164647320612062726561646372756D62207769746820616E206F7074696F6E616C206D6573736167652E
-		Sub AddBreadcrumb(category as String, message as String = "", level as Xojo_Sentry.errorLevel = Xojo_Sentry.errorLevel.info)
+		Sub AddBreadcrumb(category As String, message As String = "", level As Xojo_Sentry.errorLevel = Xojo_Sentry.errorLevel.info, data As Dictionary = nil)
 		  #if False
 		    {
 		    "type": "navigation",
@@ -44,6 +44,23 @@ Class SentryController
 		    dic.Value("level") = "debug"
 		  End Select
 		  
+		  //new v0.8
+		  if data <> nil and data.KeyCount > 0 then
+		    
+		    try
+		      //first try serializing data
+		      Dim temp as String = GenerateJSON(data)
+		      
+		      dic.Value("data") = data
+		    Catch
+		      #if DebugBuild
+		        System.DebugLog CurrentMethodName + " data dictionary can't be serialized to JSON. Data will not be added to the breadcrumb"
+		      #endif
+		      break
+		      //data dictionary can't be serialized
+		    end try
+		  end if
+		  
 		  
 		  breadcrumbs.Add dic
 		  
@@ -52,7 +69,7 @@ Class SentryController
 	#tag EndMethod
 
 	#tag Method, Flags = &h0, CompatibilityFlags = (TargetConsole and (Target32Bit or Target64Bit)) or  (TargetDesktop and (Target32Bit or Target64Bit)) or  (TargetIOS and (Target64Bit)) or  (TargetAndroid and (Target64Bit)), Description = 4164647320612062726561646372756D62207769746820747970652C2063617465676F727920616E64206D65737361676520706172616D65746572732E
-		Sub AddBreadcrumb(type as String, category as String, message as String, level as Xojo_Sentry.errorLevel = Xojo_Sentry.errorLevel.info)
+		Sub AddBreadcrumb(type As String, category As String, message As String, level As Xojo_Sentry.errorLevel = Xojo_Sentry.errorLevel.info, data As Dictionary = nil)
 		  #if False
 		    {
 		    "type": "navigation",
@@ -96,6 +113,23 @@ Class SentryController
 		  case errorLevel.debug
 		    dic.Value("level") = "debug"
 		  End Select
+		  
+		  //new v0.8
+		  if data <> nil and data.KeyCount > 0 then
+		    
+		    try
+		      //first try serializing data
+		      Dim temp as String = GenerateJSON(data)
+		      
+		      dic.Value("data") = data
+		    Catch
+		      #if DebugBuild
+		        System.DebugLog CurrentMethodName + " data dictionary can't be serialized to JSON. Data will not be added to the breadcrumb"
+		      #endif
+		      break
+		      //data dictionary can't be serialized
+		    end try
+		  end if
 		  
 		  
 		  breadcrumbs.Add dic
@@ -979,6 +1013,9 @@ Class SentryController
 		    #endif
 		    
 		    jApp.Value("app_version") = getAppVersion
+		    
+		    //new v0.8
+		    jApp.Value("build_date") = app.BuildDateTime.SQLDateTime.Replace(" ", "T") + "Z"
 		    
 		    //new v0.7
 		    jApp.Value("app_memory") = Runtime.MemoryUsed

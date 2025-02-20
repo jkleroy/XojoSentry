@@ -7,13 +7,13 @@
  API for using https://sentry.io
 
 - Release date: 2023-01-10
-- Latest update: 2024-08-30
+- Latest update: 2025-02-20
 
-Language: Xojo 2024r2 Desktop, Web & iOS Project
+Language: Xojo 2024r3 Desktop, Web & iOS Project
 
 Author: Jeremie Leroy
 
-Version 0.7
+Version 0.9
 
 Based on the original code from Mike Cotrone https://github.com/mikecotrone/XojoSentryV2
 
@@ -33,6 +33,52 @@ Open one of the example projects
 5. You will get a project DSN from Sentry. Copy that value in the App.Opening event
 
 
+##Sentry Options
+After initiliazing Sentry, there are a few options that can be set.
+
+```xojo
+//If necessary, Sentry has a few options
+self.sentry.Options.app_name = "" //Your app's name
+
+'self.sentry.Options.get_battery_status = True //Only relevant on iOS
+self.sentry.Options.include_StackFrame_address = False
+self.sentry.Options.max_breadcrumbs = 100 //The maximum amount of breadcrumbs to keep
+self.sentry.Options.persistant_breadcrumbs = 10 //The maximum amount of persistant breadcrumbs to keep. Defaults to 10
+self.sentry.Options.sample_rate = 1.0 //Configures the sample rate for error events, in the range of 0.0 to 1.0. The default is 1.0 which means that 100% of error events are sent. If set to 0.1 only 10% of error events will be sent. Events are picked randomly.
+self.sentry.Options.save_before_sending = False //Saves the exception to disk before sending to Sentry. Set to True before sending an UnhandledException or when the app is about to crash
+self.sentry.Options.traces_sample_rate = 0.1 //Configures the sample rate for tracing events, in the range of 0.0 to 1.0. The default is 0.1 which means that 10% of traces events are sent. Traces are picked randomly.
+```
+
+
+##The User Object
+Assign a SentryUser to your instance of SentryController to retrieve useful information about the user.
+
+```xojo
+//If your app handles user authentication add the info to sentry
+
+Var user as new Xojo_Sentry.SentryUser
+user.email = "name@example.com"
+user.language = "en" //The language the user is running the app in
+user.locale = locale.Current
+'user.ip = "1.1.1.1" //Uncomment this if necessary. Default is "{{auto}}"
+user.user_id = "1234" //The user's unique ID
+
+self.sentry.user = user
+```
+
+
+| Parameter | Explanation |
+| -- | -- |
+| email | As String. The user's email address. |
+| ip | As String. The user's IP address. Default is {{auto}}. |
+| language | As String. The language used by the app when running on this user's device. |
+| locale | As Locale. Defaults to `Locale.current` |
+| subscription | As String. The user's current subscription status.  |
+| user_id | As String. The user's unique identifier. |
+
+Sentry will then display user's information in the Contexts area
+
+![image](./images/sentry_user_information.png)
 
 ## More information
 https://github.com/getsentry/sentry
