@@ -113,12 +113,14 @@ Sentry allows many different pieces of context information to be added to an Exc
 
 Xojo_Sentry allows two types of Tags. A global tag or a regular Tag.
 
+**Adding Tags**
+
 ```xojo
 App.Sentry.AddTag(key As String, value as String) // Adds a tag that lives until an exception is sent
 
 App.Sentry.AddGlobalTag(key As String, value as String) // Adds a global tag that is persistant
 ```
-
+**Removing Tags**
 Remove tags by using one of these methods:
 ```xojo
 App.Sentry.RemoveAllGlobalTags()
