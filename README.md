@@ -107,6 +107,12 @@ Catch exc
 end try
 ```
 
+And add the following code in **App.UnhandledException** event:
+```xojo
+app.Sentry.SubmitException(exc, "", "", Xojo_Sentry.errorLevel.error)
+```
+
+
 ## Adding more context to an Exception
 
 Sentry allows many different pieces of context information to be added to an Exception.
@@ -189,12 +195,65 @@ Sentry.AddWebBreadcrumb(SessionID as String, category as String, message as Stri
 
 //Adds a navigation breadcrumb with an optional message tied to the current Session Identifier
 Sentry.AddWebBreadcrumbNavigation(SessionID As String, fromScreen As String, toScreen As String, message As String = "")
+#endif
 ```
 
 Sentry will then display all available breadcrumbs when an exception is logged:
 
 ![image](./images/sentry_breadcrumbs.png)
 
+### Breadcrumb management
+
+**Retrieving the latest breadcrumb**
+
+Retrieving the last added breadcrumb is done like this:
+
+`App.Sentry.LastBreadcrumb() As Dictionary`
+
+In Web Projects, it is necessary to specify the Session Identifier:
+
+`App.Sentry.LastBreadcrumb(SessionID As String) As Dictionary`
+
+**Removing breadcrumbs**
+
+It is also possible to remove the last added breadcrumb with this method:
+
+`App.Sentry.RemoveLastBreadcrumb()`
+
+In Web Projects, it is necessary to specify the Session Identifier:
+
+`App.Sentry.RemoveLastBreadcrumb(SessionID As String)`
+
+
+Moreover, it is better to do some breadcrumb cleanup in Web Projects when a Session is closed.
+Add this code in the Session.Closing event:
+
+```xojo
+//Removes the session breadcrumbs
+app.sentry.RemoveSessionBreadcrumbs(self.Identifier)
+```
+
+# Release health
+
+Sentry allows monitoring release health metrics at the following url: https://sentry.io/releases
+
+## Setting up release health
+
+In the **App.Opening** event, after initializing Sentry, start a Sentry Session:
+`app.sentry.SendSessionInfo(Xojo_Sentry.sessionStatus.ok)`
+
+Set up a timer to send information to Sentry again every 1 - 2 minutes:
+Calculate the duration of the session (difference between current time and the opening event of the app for example)
+`app.sentry.SendSessionInfo(Xojo_Sentry.sessionStatus.ok, duration)`
+
+In the **App.Closing** event, terminate the session
+`app.Sentry.SendSessionInfo(Xojo_Sentry.sessionStatus.exited, duration)`
+
+In the **App.UnhandledException** event, tell Sentry that the current session had a crash:
+`app.sentry.SendSessionInfo(Xojo_Sentry.sessionStatus.crashed)`
+
+Anywhere else in your project, you can tell Sentry that the app experienced an abnormal behavior with this code:
+`app.sentry.SendSessionInfo(Xojo_Sentry.sessionStatus.abnormal)`
 
 ## More information
 https://github.com/getsentry/sentry
