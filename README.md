@@ -91,7 +91,7 @@ App.Sentry.SubmitException(exc, CurrentMethodName)
 
 Typically, you would wrap some code in a `Try... Catch` statement like this
 ```xojo
-try
+Try
   
   //Some code that may fail
   
@@ -104,12 +104,12 @@ Catch exc
   App.sentry.SubmitException(exc, CurrentMethodName)
   
   
-end try
+End try
 ```
 
 And add the following code in **App.UnhandledException** event:
 ```xojo
-app.Sentry.SubmitException(exc, "", "", Xojo_Sentry.errorLevel.error)
+App.Sentry.SubmitException(exc, "", "", Xojo_Sentry.errorLevel.error)
 ```
 
 
@@ -131,6 +131,7 @@ App.Sentry.AddGlobalTag(key As String, value as String) // Adds a global tag tha
 **Removing Tags**
 
 Remove tags by using one of these methods:
+
 ```xojo
 App.Sentry.RemoveAllGlobalTags()
 App.Sentry.RemoveAllTags()
@@ -148,15 +149,21 @@ If the method did not raise an exception to Sentry, it is necessary to do some c
 ### Line numbers
 In difficult to debug methods, it is sometimes necessary to know approximately on which line number a method raised an exception.
 
-```
+```xojo
 App.Sentry.AddLineNumber(1)
+
 //do something in your code
-App.Sentry.AddLineNumber(3)
-//do something else
+
 App.Sentry.AddLineNumber(5)
+
+//do something else
+
+App.Sentry.AddLineNumber(9)
 ...
+
 App.Sentry.AddLineNumber(100)
 ...
+
 app.sentry.RemoveAllExtra() //On the last line to remove all extra information
 ```
 
@@ -165,9 +172,11 @@ app.sentry.RemoveAllExtra() //On the last line to remove all extra information
 Sentry can display information about the last network request that was executed before an exception was sent.
 
 Call the following method just before sending a network request
+
 `App.Sentry.DefineRequest(HTTPmethod As String, url As String, data As String = "", requestHeaders As Dictionary = nil)`
 
 And remove the request information after the code executed correctly:
+
 `App.Sentry.RemoveLastRequest()`
 
 ## Breadcrumbs
@@ -177,7 +186,7 @@ Sentry uses breadcrumbs to create a trail of events that happened prior to an is
 
 There are several methods that can be used to add a **Breadcrumb**.
 
-```
+```xojo
 //Add a simple breadcrumb by defining a category and optional message
 Sentry.AddBreadcrumb(category As String, message As String = "", level As Xojo_Sentry.errorLevel = Xojo_Sentry.errorLevel.info, data As Dictionary = nil)
 
@@ -233,6 +242,7 @@ Add this code in the Session.Closing event:
 app.sentry.RemoveSessionBreadcrumbs(self.Identifier)
 ```
 
+
 # Release health
 
 Sentry allows monitoring release health metrics at the following url: https://sentry.io/releases
@@ -240,19 +250,24 @@ Sentry allows monitoring release health metrics at the following url: https://se
 ## Setting up release health
 
 In the **App.Opening** event, after initializing Sentry, start a Sentry Session:
+
 `app.sentry.SendSessionInfo(Xojo_Sentry.sessionStatus.ok)`
 
 Set up a timer to send information to Sentry again every 1 - 2 minutes:
 Calculate the duration of the session (difference between current time and the opening event of the app for example)
+
 `app.sentry.SendSessionInfo(Xojo_Sentry.sessionStatus.ok, duration)`
 
 In the **App.Closing** event, terminate the session
+
 `app.Sentry.SendSessionInfo(Xojo_Sentry.sessionStatus.exited, duration)`
 
 In the **App.UnhandledException** event, tell Sentry that the current session had a crash:
+
 `app.sentry.SendSessionInfo(Xojo_Sentry.sessionStatus.crashed)`
 
 Anywhere else in your project, you can tell Sentry that the app experienced an abnormal behavior with this code:
+
 `app.sentry.SendSessionInfo(Xojo_Sentry.sessionStatus.abnormal)`
 
 ## More information
