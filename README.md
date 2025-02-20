@@ -134,8 +134,8 @@ App.Sentry.RemoveAllTags()
 
 This is useful to debug parameter values in a method.
 If the method did not raise an exception to Sentry, it is necessary to do some cleanup at the very end with:
-`App.Sentry.RemoveExtraKeyValue(key As String)` method to remove one Extra Key Value
-`App.Sentry.RemoveAllExtra()` method to remove all extra key values.
+- `App.Sentry.RemoveExtraKeyValue(key As String)` method to remove one Extra Key Value
+- `App.Sentry.RemoveAllExtra()` method to remove all extra key values.
 
 ### Line numbers
 In difficult to debug methods, it is sometimes necessary to know approximately on which line number a method raised an exception.
