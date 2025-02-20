@@ -22,7 +22,7 @@ Based on the original code from Mike Cotrone https://github.com/mikecotrone/Xojo
 This is a full client written in Xojo for Sentry.io. The Sentry.io platform helps every developer diagnose, fix, and optimize the performance of their code. With Sentry, developers around the world save time, energy, and probably a few therapy sessions.
 
 
-## Usage
+# Usage
 
 Open one of the example projects
 
@@ -33,7 +33,7 @@ Open one of the example projects
 5. You will get a project DSN from Sentry. Copy that value in the App.Opening event
 
 
-##Sentry Options
+## Sentry Options
 After initiliazing Sentry, there are a few options that can be set.
 
 ```xojo
@@ -50,7 +50,7 @@ self.sentry.Options.traces_sample_rate = 0.1 //Configures the sample rate for tr
 ```
 
 
-##The User Object
+## The User Object
 Assign a SentryUser to your instance of SentryController to retrieve useful information about the user.
 
 ```xojo
