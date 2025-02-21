@@ -8,6 +8,7 @@ Begin MobileScreen Screen1
    LargeTitleDisplayMode=   2
    Left            =   0
    Orientation = 0
+   ScaleFactor     =   0.0
    TabBarVisible   =   True
    TabIcon         =   0
    TintColor       =   &c00000000
@@ -35,6 +36,7 @@ Begin MobileScreen Screen1
       Top             =   148
       Visible         =   True
       Width           =   226
+      _ClosingFired   =   False
    End
    Begin MobileButton Button2
       AccessibilityHint=   ""
@@ -58,6 +60,7 @@ Begin MobileScreen Screen1
       Top             =   197
       Visible         =   True
       Width           =   280
+      _ClosingFired   =   False
    End
    Begin MobileLabel lblStatus
       AccessibilityHint=   ""
@@ -73,6 +76,7 @@ Begin MobileScreen Screen1
       Left            =   20
       LineBreakMode   =   0
       LockedInPosition=   False
+      MaximumCharactersAllowed=   0
       Scope           =   2
       SelectedText    =   ""
       SelectionLength =   0
@@ -83,8 +87,9 @@ Begin MobileScreen Screen1
       TextSize        =   0
       TintColor       =   &c000000
       Top             =   341
-      Visible         =   False
+      Visible         =   True
       Width           =   280
+      _ClosingFired   =   False
    End
    Begin MobileButton Button3
       AccessibilityHint=   ""
@@ -108,6 +113,7 @@ Begin MobileScreen Screen1
       Top             =   269
       Visible         =   True
       Width           =   226
+      _ClosingFired   =   False
    End
    Begin MobileButton Button4
       AccessibilityHint=   ""
@@ -131,6 +137,32 @@ Begin MobileScreen Screen1
       Top             =   97
       Visible         =   True
       Width           =   226
+      _ClosingFired   =   False
+   End
+   Begin MobileButton btAttachment
+      AccessibilityHint=   ""
+      AccessibilityLabel=   ""
+      AutoLayout      =   btAttachment, 9, <Parent>, 9, False, +1.00, 4, 1, 0, , True
+      AutoLayout      =   btAttachment, 8, , 0, False, +1.00, 4, 1, 30, , True
+      AutoLayout      =   btAttachment, 3, Button3, 4, False, +1.00, 4, 1, *kStdControlGapV, , True
+      AutoLayout      =   btAttachment, 7, , 0, False, +1.00, 4, 2, 120, , True
+      Caption         =   "Send Attachment"
+      CaptionColor    =   &c007AFF00
+      ControlCount    =   0
+      Enabled         =   False
+      Height          =   30
+      Left            =   100
+      LockedInPosition=   False
+      PanelIndex      =   -1
+      Parent          =   ""
+      Scope           =   2
+      TextFont        =   ""
+      TextSize        =   0
+      TintColor       =   &c000000
+      Top             =   309
+      Visible         =   True
+      Width           =   120
+      _ClosingFired   =   False
    End
 End
 #tag EndMobileScreen
@@ -138,6 +170,8 @@ End
 #tag WindowCode
 	#tag Event
 		Sub Opening()
+		  
+		  app.sentry.AddBreadcrumb("info", CurrentMethodName)
 		  
 		  if app.sentry is nil then
 		    
@@ -163,11 +197,13 @@ End
 	#tag Event
 		Sub Pressed()
 		  
-		  Dim dic As new Dictionary
+		  
 		  
 		  try
 		    
+		    //Some code that may fail
 		    
+		    Dim dic As new Dictionary
 		    Dim value As String = dic.Value("foo")
 		    
 		  Catch err
@@ -179,7 +215,7 @@ End
 		  end try
 		  
 		  Button3.Enabled = True
-		  'btAttachment.Enabled = True
+		  btAttachment.Enabled = True
 		End Sub
 	#tag EndEvent
 #tag EndEvents
@@ -188,7 +224,7 @@ End
 		Sub Pressed()
 		  
 		  Button3.Enabled = True
-		  'btAttachment.Enabled = True
+		  btAttachment.Enabled = True
 		  
 		  
 		  
@@ -226,7 +262,28 @@ End
 		End Sub
 	#tag EndEvent
 #tag EndEvents
+#tag Events btAttachment
+	#tag Event
+		Sub Pressed()
+		  
+		  Dim p As Picture = new Picture(30, 30)
+		  
+		  p.Graphics.DrawingColor = &cFF0000
+		  p.Graphics.DrawText("Test", 0, 20)
+		  
+		  app.sentry.SendAttachment(app.sentry.lastUUID, p.ToData(Picture.Formats.PNG), "image.png", "image/png")
+		End Sub
+	#tag EndEvent
+#tag EndEvents
 #tag ViewBehavior
+	#tag ViewProperty
+		Name="ScaleFactor"
+		Visible=false
+		Group="Behavior"
+		InitialValue=""
+		Type="Double"
+		EditorType=""
+	#tag EndViewProperty
 	#tag ViewProperty
 		Name="Index"
 		Visible=true

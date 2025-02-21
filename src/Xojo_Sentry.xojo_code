@@ -6,6 +6,12 @@ Protected Module Xojo_Sentry
 
 
 	#tag Note, Name = History
+		# Version 0.9
+		
+		New
+		SentryController.AddBreadCrumb now has an optional data as Dictionary parameter.
+		This allows to add more information to the breadcrumb.
+		
 		# Version 0.8
 		
 		New
@@ -91,16 +97,16 @@ Protected Module Xojo_Sentry
 	#tag EndNote
 
 
-	#tag Constant, Name = kReleaseDate, Type = Double, Dynamic = False, Default = \"20241222", Scope = Private
+	#tag Constant, Name = kReleaseDate, Type = Double, Dynamic = False, Default = \"20250220", Scope = Private
 	#tag EndConstant
 
-	#tag Constant, Name = kUseMBSPlugins, Type = Boolean, Dynamic = False, Default = \"True", Scope = Private
+	#tag Constant, Name = kUseMBSPlugins, Type = Boolean, Dynamic = False, Default = \"False", Scope = Private
 	#tag EndConstant
 
 	#tag Constant, Name = kVerbose, Type = Boolean, Dynamic = False, Default = \"False", Scope = Private, Description = 53657420746F205472756520666F7220646562756767696E67206D65737361676573202844656275674275696C64206F6E6C7929
 	#tag EndConstant
 
-	#tag Constant, Name = kVersion, Type = String, Dynamic = False, Default = \"0.8", Scope = Private
+	#tag Constant, Name = kVersion, Type = String, Dynamic = False, Default = \"0.9", Scope = Private
 	#tag EndConstant
 
 

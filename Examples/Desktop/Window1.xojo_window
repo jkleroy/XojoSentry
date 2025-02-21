@@ -45,7 +45,7 @@ Begin DesktopWindow Window1
       Tooltip         =   ""
       Top             =   0
       Transparent     =   False
-      Value           =   3
+      Value           =   0
       Visible         =   True
       Width           =   600
       Begin DesktopButton btAttachment
@@ -517,6 +517,7 @@ Begin DesktopWindow Window1
       TabPanelIndex   =   0
       ThreadID        =   0
       ThreadState     =   0
+      Type            =   0
    End
 End
 #tag EndDesktopWindow
@@ -658,6 +659,13 @@ End
 		    
 		    f.Delete
 		  end if
+		  
+		  
+		  //Alternatively you can send a picture without creating a temporary folderitem
+		  
+		  app.sentry.SendAttachment(event_id, p.ToData(Picture.Formats.PNG), "image.png", "image/png")
+		  
+		  
 		End Sub
 	#tag EndEvent
 #tag EndEvents
