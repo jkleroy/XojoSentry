@@ -122,11 +122,15 @@ Inherits MobileApplication
 		  
 		  
 		  //If necessary, Sentry has a few options
+		  self.sentry.Options.app_name = "" //Your app's name
+		  
 		  'self.sentry.Options.get_battery_status = True //Only relevant on iOS
 		  self.sentry.Options.include_StackFrame_address = False
-		  self.sentry.Options.max_breadcrumbs = 100
-		  self.sentry.Options.sample_rate = 1.0 //Keep this value at 1.0 when debugging, change value for a released app
-		  
+		  self.sentry.Options.max_breadcrumbs = 100 //The maximum amount of breadcrumbs to keep
+		  self.sentry.Options.persistant_breadcrumbs = 10 //The maximum amount of persistant breadcrumbs to keep. Defaults to 10
+		  self.sentry.Options.sample_rate = 1.0 //Configures the sample rate for error events, in the range of 0.0 to 1.0. The default is 1.0 which means that 100% of error events are sent. If set to 0.1 only 10% of error events will be sent. Events are picked randomly.
+		  self.sentry.Options.save_before_sending = False //Saves the exception to disk before sending to Sentry. Set to True before sending an UnhandledException or when the app is about to crash
+		  self.sentry.Options.traces_sample_rate = 0.1 //Configures the sample rate for tracing events, in the range of 0.0 to 1.0. The default is 0.1 which means that 10% of traces events are sent. Traces are picked randomly.
 		  
 		  
 		  //If your app handles user authentication add the info to sentry

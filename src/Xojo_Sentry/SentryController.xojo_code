@@ -179,7 +179,7 @@ Class SentryController
 		End Sub
 	#tag EndMethod
 
-	#tag Method, Flags = &h0, Description = 416464732061206B65792F76616C75652074686174206C6976657320756E74696C20616E20657863657074696F6E2069732073656E74
+	#tag Method, Flags = &h0, Description = 416464732061206B65792F76616C756520706169722074686174206C6976657320756E74696C20616E20657863657074696F6E2069732073656E74
 		Sub AddExtraKeyValue(key As String, value As Variant)
 		  
 		  if tempExtra is nil then
@@ -645,6 +645,43 @@ Class SentryController
 		    Dim tis As TextInputStream = TextInputStream.Open(file)
 		    
 		    Return GenerateJSON(js) + &u0A + tis.ReadAll + &u0A
+		    
+		    
+		  end if
+		End Function
+	#tag EndMethod
+
+	#tag Method, Flags = &h21
+		Private Function GenerateAttachmentEnvelope(data As String, filename As String, contentType As String) As String
+		  
+		  Dim js As new Dictionary
+		  
+		  js.Value("type") = "attachment"
+		  
+		  if data.IsEmpty then
+		    js.Value("length") = 0
+		    
+		    Return GenerateJSON(js) + &u0A + &u0A
+		    
+		  Else
+		    
+		    
+		    
+		    //Maximum file size is 20MiB
+		    if data.Bytes > 20 * 1024 * 1024 then
+		      System.DebugLog CurrentMethodName + " attachment discarded (over 20MiB)"
+		      Return ""
+		    end if
+		    
+		    js.Value("length") = data.Bytes
+		    js.Value("filename") = filename
+		    
+		    if contentType.IsEmpty = False then
+		      js.Value("content_type") = contentType
+		    end if
+		    
+		    
+		    Return GenerateJSON(js) + &u0A + data + &u0A
 		    
 		    
 		  end if
@@ -2094,6 +2131,80 @@ Class SentryController
 		End Sub
 	#tag EndMethod
 
+	#tag Method, Flags = &h0, Description = 53656E647320616E206174746163686D656E74
+		Sub SendAttachment(event_uuid As String, data As String, filename As String = "data.txt", attachmentContentType As String = "text/plain")
+		  //Parameters: event_uuid As String, email As String, name As String, comments As String, attachment As FolderItem = nil, attachmentContentType As String = ""
+		  
+		  //new in v0.9
+		  
+		  if event_uuid.IsEmpty then Return
+		  
+		  
+		  
+		  Dim js As new Dictionary
+		  
+		  js.Value("event_id") = event_uuid
+		  
+		  
+		  
+		  Dim envelope As String
+		  
+		  Dim jsHeader As new Dictionary
+		  jsHeader.Value("event_id") = event_uuid
+		  
+		  Dim jsType As new Dictionary
+		  jsType.Value("type") = "attachment"
+		  
+		  //Now concat all items into the envelope
+		  envelope = xojo.GenerateJSON(jsHeader, False) + &u0A
+		  
+		  
+		  
+		  #if true
+		    if data.IsEmpty = False then
+		      
+		      envelope = envelope + GenerateAttachmentEnvelope(data, filename, attachmentContenttype)
+		      
+		    end if
+		  #endif
+		  
+		  #if TargetAndroid //Comment if your Xojo version doesn't support Android
+		    '#if False //UNCOMMENT if your Xojo version doesn't support Android
+		    Dim sock As new URLConnection
+		  #else
+		    Dim sock As new SentrySocket
+		  #endif
+		  
+		  
+		  //Build the header to submit
+		  dim header as String
+		  header=GetEnvelopeHeader()
+		  
+		  
+		  sock.RequestHeader("User-Agent") = "Xojo-Sentry/"+kVersion
+		  sock.RequestHeader("X-Sentry-Auth") = header
+		  sock.RequestHeader("Content-Type") = "application/x-sentry-envelope"
+		  
+		  sock.SetRequestContent(envelope, "text/plain")
+		  
+		  
+		  
+		  'Dim tag As new Dictionary
+		  'tag.Value("sentry-event_id") = event_id
+		  'tag.Value("sentry-envelope") = envelope
+		  
+		  'sock.callBack = WeakAddressOf StartSession_Process
+		  'sock.tag = tag
+		  
+		  sock.Send("POST", uri + "/api/" + ProjectID + "/envelope/")
+		  
+		  #if DebugBuild and kVerbose
+		    System.DebugLog CurrentMethodName + " Attachment sent"
+		  #endif
+		  
+		End Sub
+	#tag EndMethod
+
 	#tag Method, Flags = &h0, Description = 53656E647320657863657074696F6E73207468617420776865726520736176656420746F204469736B
 		Sub SendOfflineExceptions()
 		  //Path to sentry offline folder
@@ -2188,6 +2299,15 @@ Class SentryController
 		    }
 		  #endif
 		  
+		  //new v0.9
+		  if pauseUntil <> nil and DateTime.Now.SecondsFrom1970 < pauseUntil.SecondsFrom1970 then
+		    #if DebugBuild and kVerbose
+		      System.DebugLog CurrentMethodName + " is paused until " + pauseUntil.SQLDateTime
+		    #endif
+		    
+		    Return
+		  end if
+		  
 		  Dim js As new Dictionary
 		  
 		  
@@ -2220,10 +2340,15 @@ Class SentryController
 		    end if
 		  end if
 		  
+		  if errorCount > 0 then
+		    js.Value("errors") = errorCount
+		  end if
+		  
 		  Select case status
 		  case sessionStatus.exited
 		    js.Value("status") = "exited"
 		    self.sessionID = "" //Forces next call to create a new session
+		    errorCount = 0
 		    
 		  Case sessionStatus.ok
 		    js.Value("status") = "ok"
@@ -2231,10 +2356,12 @@ Class SentryController
 		  Case sessionStatus.crashed
 		    js.Value("status") = "crashed"
 		    self.sessionID = "" //Forces next call to create a new session
+		    errorCount = 0
 		    
 		  Case sessionStatus.abnormal
 		    js.Value("status") = "abnormal"
 		    self.sessionID = "" //Forces next call to create a new session
+		    errorCount = 0
 		    
 		  End Select
 		  
@@ -2322,6 +2449,10 @@ Class SentryController
 		    end try
 		    
 		  end if
+		  
+		  #if DebugBuild and kVerbose
+		    System.DebugLog CurrentMethodName + " completed."
+		  #endif
 		End Sub
 	#tag EndMethod
 
@@ -2362,81 +2493,86 @@ Class SentryController
 
 	#tag Method, Flags = &h21, CompatibilityFlags = (TargetConsole and (Target32Bit or Target64Bit)) or  (TargetWeb and (Target32Bit or Target64Bit)) or  (TargetDesktop and (Target32Bit or Target64Bit)) or  (TargetIOS and (Target64Bit))
 		Private Sub SendToSentry(event_id As String, data As String)
-		  
-		  
-		  Dim sock As new SentrySocket
-		  
-		  
-		  //Build the header to submit
-		  dim header As String
-		  header=GetEnvelopeHeader()
-		  
-		  
-		  sock.RequestHeader("User-Agent") = "Xojo-Sentry/"+kVersion
-		  sock.RequestHeader("X-Sentry-Auth") = header
-		  sock.RequestHeader("Content-Type") = "application/json"
-		  
-		  
-		  sock.SetRequestContent(data, "application/json")
-		  
-		  Dim tag As New Dictionary
-		  tag.Value("sentry-event_id") = event_id
-		  tag.Value("sentry-data") = data
-		  
-		  sock.tag = tag
-		  
-		  sock.callBack = WeakAddressOf SendToSentry_Process
-		  sock.Send("POST", uri + "/api/" + ProjectID + "/store/")
-		  
-		  
-		  #if DebugBuild and kVerbose
-		    System.DebugLog CurrentMethodName + " Sent"
+		  #if not TargetAndroid
+		    
+		    Dim sock As new SentrySocket
+		    
+		    
+		    //Build the header to submit
+		    dim header As String
+		    header=GetEnvelopeHeader()
+		    
+		    
+		    sock.RequestHeader("User-Agent") = "Xojo-Sentry/"+kVersion
+		    sock.RequestHeader("X-Sentry-Auth") = header
+		    sock.RequestHeader("Content-Type") = "application/json"
+		    
+		    
+		    sock.SetRequestContent(data, "application/json")
+		    
+		    Dim tag As New Dictionary
+		    tag.Value("sentry-event_id") = event_id
+		    tag.Value("sentry-data") = data
+		    
+		    sock.tag = tag
+		    
+		    sock.callBack = WeakAddressOf SendToSentry_Process
+		    sock.Send("POST", uri + "/api/" + ProjectID + "/store/")
+		    
+		    
+		    #if DebugBuild and kVerbose
+		      System.DebugLog CurrentMethodName + " Sent"
+		    #endif
+		    
+		    
 		  #endif
 		End Sub
 	#tag EndMethod
 
 	#tag Method, Flags = &h21, CompatibilityFlags = (TargetAndroid and (Target64Bit))
 		Private Sub SendToSentry_Android(event_id As String, data As String)
-		  
-		  
-		  //We use  HTTPS
-		  Dim sock As new URLConnection
-		  
-		  AddHandler sock.ContentReceived, AddressOf Socket_ContentReceived
-		  AddHandler sock.Error, AddressOf Socket_Error
-		  
-		  //Build the header to submit
-		  dim header As String
-		  header=GetEnvelopeHeader()
-		  
-		  
-		  sock.RequestHeader("User-Agent") = "Xojo-Sentry/"+kVersion
-		  sock.RequestHeader("X-Sentry-Auth") = header
-		  sock.RequestHeader("Content-Type") = "application/json"
-		  
-		  
-		  sock.SetRequestContent(data, "application/json")
-		  
-		  Dim tag As New Dictionary
-		  tag.Value("sentry-event_id") = event_id
-		  tag.Value("sentry-data") = data
-		  
-		  'sock.tag = tag
-		  
-		  'sock.callBack = WeakAddressOf SendToSentry_Process
-		  if Options <> nil and Options.send_sync then
-		    Var result as string
-		    try
-		      result = sock.SendSync("POST", uri + "/api/" + ProjectID + "/store/", 60)
-		    catch
-		    end try
-		    #if DebugBuild
-		      System.DebugLog CurrentMethodName + "_result: " + result
-		    #endif
-		  Else
-		    sock.Send("POST", uri + "/api/" + ProjectID + "/store/", 60)
-		  end if
-		  
+		  #if TargetAndroid
+		    
+		    //We use  HTTPS
+		    Dim sock As new URLConnection
+		    
+		    AddHandler sock.ContentReceived, AddressOf Socket_ContentReceived
+		    AddHandler sock.Error, AddressOf Socket_Error
+		    
+		    //Build the header to submit
+		    dim header As String
+		    header=GetEnvelopeHeader()
+		    
+		    
+		    sock.RequestHeader("User-Agent") = "Xojo-Sentry/"+kVersion
+		    sock.RequestHeader("X-Sentry-Auth") = header
+		    sock.RequestHeader("Content-Type") = "application/json"
+		    
+		    
+		    sock.SetRequestContent(data, "application/json")
+		    
+		    Dim tag As New Dictionary
+		    tag.Value("sentry-event_id") = event_id
+		    tag.Value("sentry-data") = data
+		    
+		    'sock.tag = tag
+		    
+		    'sock.callBack = WeakAddressOf SendToSentry_Process
+		    if Options <> nil and Options.send_sync then
+		      Var result as string
+		      try
+		        result = sock.SendSync("POST", uri + "/api/" + ProjectID + "/store/", 60)
+		      catch
+		      end try
+		      #if DebugBuild
+		        System.DebugLog CurrentMethodName + "_result: " + result
+		      #endif
+		    Else
+		      sock.Send("POST", uri + "/api/" + ProjectID + "/store/", 60)
+		    end if
+		    
+		    
+		  #endif
 		End Sub
 	#tag EndMethod
 

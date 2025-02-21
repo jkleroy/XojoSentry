@@ -179,6 +179,37 @@ And remove the request information after the code executed correctly:
 
 `App.Sentry.RemoveLastRequest()`
 
+
+### Attachments
+
+When using Sentry.AddExtraKeyValue, the length of the value is limited to 16KiB (1024*16 Bytes). But Sentry might drop the value or truncate it for smaller sizes.
+The alternative to send large values to Sentry after an exception is submitted is to send an attachment (file).
+
+Multiple files can be appended to an exception by calling Sentry.SendAttachment subsequently for each file or large string value.
+
+When sending a `FolderItem` attachment, there are two mandatory parameters and one optional parameter
+
+```xojo
+// lastUUID As String, attachment as FolderItem
+// optional attachmentContentType as String
+
+//Sending a text file:
+App.Sentry.SendAttachment(App.Sentry.lastUUID, file, "text/plain")
+```
+
+When sending a String value (or memoryblock), the filename and contentType are optional but highly recommended:
+
+```xojo
+//Sending a picture
+app.sentry.SendAttachment(app.sentry.lastUUID, aPicture.ToData(Picture.Formats.PNG), "image.png", "image/png")
+
+//Sending a large text value
+app.sentry.SendAttachment(app.sentry.lastUUID, SomeLargeText, "filename.txt", "text/plain")
+```
+
+
+
+
 ## Breadcrumbs
 Sentry uses breadcrumbs to create a trail of events that happened prior to an issue. These events are very similar to traditional logs, but can record more rich structured data.
 
@@ -247,20 +278,24 @@ app.sentry.RemoveSessionBreadcrumbs(self.Identifier)
 
 Sentry allows monitoring release health metrics at the following url: https://sentry.io/releases
 
+*Note: not compatible with Web projects at the moment.*
+
 ## Setting up release health
 
-In the **App.Opening** event, after initializing Sentry, start a Sentry Session:
+In the **App.Opening** event, after initializing Sentry, start a Sentry Session. The duration is optional. If not provided, Xojo_Sentry will calculate the duration automatically.
+
+`app.sentry.SendSessionInfo(Xojo_Sentry.sessionStatus.ok, duration as Integer = 0)`
+
+Set up a timer to send information to Sentry again every 1 - 2 minutes:
 
 `app.sentry.SendSessionInfo(Xojo_Sentry.sessionStatus.ok)`
 
-Set up a timer to send information to Sentry again every 1 - 2 minutes:
-Calculate the duration of the session (difference between current time and the opening event of the app for example)
-
-`app.sentry.SendSessionInfo(Xojo_Sentry.sessionStatus.ok, duration)`
-
 In the **App.Closing** event, terminate the session
 
-`app.Sentry.SendSessionInfo(Xojo_Sentry.sessionStatus.exited, duration)`
+`app.Sentry.SendSessionInfo(Xojo_Sentry.sessionStatus.exited)`
+
+Or use an easiest form, which is an alias for the above line of code:
+`app.Sentry.TerminateSession()`
 
 In the **App.UnhandledException** event, tell Sentry that the current session had a crash:
 
@@ -269,6 +304,8 @@ In the **App.UnhandledException** event, tell Sentry that the current session ha
 Anywhere else in your project, you can tell Sentry that the app experienced an abnormal behavior with this code:
 
 `app.sentry.SendSessionInfo(Xojo_Sentry.sessionStatus.abnormal)`
+
+
 
 ## More information
 https://github.com/getsentry/sentry

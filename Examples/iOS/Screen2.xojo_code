@@ -8,6 +8,7 @@ Begin MobileScreen Screen2
    LargeTitleDisplayMode=   2
    Left            =   0
    Orientation = 0
+   ScaleFactor     =   0.0
    TabBarVisible   =   True
    TabIcon         =   0
    TintColor       =   &c00000000
@@ -34,6 +35,7 @@ Begin MobileScreen Screen2
       Top             =   73
       Visible         =   True
       Width           =   100
+      _ClosingFired   =   False
    End
    Begin MobileButton Button2
       AccessibilityHint=   ""
@@ -56,6 +58,7 @@ Begin MobileScreen Screen2
       Top             =   111
       Visible         =   True
       Width           =   100
+      _ClosingFired   =   False
    End
    Begin MobileButton Button3
       AccessibilityHint=   ""
@@ -78,6 +81,7 @@ Begin MobileScreen Screen2
       Top             =   149
       Visible         =   True
       Width           =   100
+      _ClosingFired   =   False
    End
    Begin MobileLabel lblStatus
       AccessibilityHint=   ""
@@ -93,6 +97,7 @@ Begin MobileScreen Screen2
       Left            =   20
       LineBreakMode   =   0
       LockedInPosition=   False
+      MaximumCharactersAllowed=   0
       Scope           =   2
       SelectedText    =   ""
       SelectionLength =   0
@@ -106,11 +111,19 @@ Begin MobileScreen Screen2
       Top             =   268
       Visible         =   True
       Width           =   280
+      _ClosingFired   =   False
    End
 End
 #tag EndMobileScreen
 
 #tag WindowCode
+	#tag Event
+		Sub Opening()
+		  app.sentry.AddBreadcrumb("info", CurrentMethodName)
+		End Sub
+	#tag EndEvent
+
+
 #tag EndWindowCode
 
 #tag Events Button1
@@ -118,7 +131,6 @@ End
 		Sub Pressed()
 		  
 		  app.sentry.AddBreadcrumb("ui.click",  CurrentMethodName)
-		  
 		  
 		  
 		  Button2.Enabled = True
@@ -131,6 +143,9 @@ End
 		  app.sentry.AddBreadcrumb("ui.click",  CurrentMethodName)
 		  
 		  Button3.Enabled = True
+		  
+		  
+		  
 		End Sub
 	#tag EndEvent
 #tag EndEvents
@@ -157,6 +172,14 @@ End
 	#tag EndEvent
 #tag EndEvents
 #tag ViewBehavior
+	#tag ViewProperty
+		Name="ScaleFactor"
+		Visible=false
+		Group="Behavior"
+		InitialValue=""
+		Type="Double"
+		EditorType=""
+	#tag EndViewProperty
 	#tag ViewProperty
 		Name="Index"
 		Visible=true
